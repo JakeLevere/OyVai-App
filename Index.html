@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Daily Nodes Timeline</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; overflow: hidden; }
+    canvas { display:block; }
+    .btn { @apply w-full rounded-2xl px-3 py-2 text-sm font-medium bg-gray-800/70 hover:bg-gray-700/70 border border-gray-700 text-gray-100 transition; }
+  </style>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet"/>
+</head>
+<body class="bg-gray-950 text-gray-100">
+  <div class="flex h-screen w-screen">
+    <!-- Left Toolbar -->
+    <aside class="w-[14rem] shrink-0 h-full bg-gray-900/60 border-r border-gray-800 backdrop-blur">
+      <div class="p-3 space-y-3">
+        <h1 class="text-lg font-semibold">Daily Node Timeline</h1>
+        <div class="text-xs text-gray-400">Click a dot to expand/collapse its bracketed column. Wheel to zoom · Space+Drag (or middle mouse) to pan.</div>
+        <div class="grid gap-2 mt-2">
+          <button id="addDayBtn" class="btn">➕ Add day</button>
+          <button id="removeDayBtn" class="btn">➖ Remove day</button>
+          <button id="resetViewBtn" class="btn">🧭 Reset view</button>
+          <button id="toggleCurveBtn" class="btn">〰️ Toggle curves</button>
+          <button id="toggleGlowBtn" class="btn">💡 Toggle glow</button>
+        </div>
+        <div class="pt-3 border-t border-gray-800 text-xs text-gray-400 space-y-1">
+          <div>Days: <span id="countLabel" class="text-gray-200">0</span></div>
+          <div>Scale: <span id="scaleLabel" class="text-gray-200">1.00</span>x</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="flex-1 h-full relative">
+      <canvas id="nodeCanvas" class="absolute inset-0"></canvas>
+      <div class="pointer-events-none absolute inset-0 bg-gradient-to-t from-gray-950/30 to-transparent"></div>
+    </main>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('nodeCanvas');
+    const ctx = canvas.getContext('2d');
+    const dpi = () => window.devicePixelRatio || 1;
+
+    // Options
+    let useCurves = true;
+    let useGlow = true;
+
+    // View (world -> screen)
+    const view = { scale: 1, minScale: 0.25, maxScale: 3, offset: { x: 0, y: 0 } };
+
+    // State
+    const DAY_SPACING = 160;         // world units between days on x-axis
+    const NODE_RADIUS = 16;          // dot radius (world units)
+    const COLUMN_HEIGHT = 220;       // expanded bracket height
+    const COLUMN_DOTS = 6;           // inner sub-dots
+    const AXIS_Y = 0;                // baseline (world y)
+    let nodes = [];                  // [{dayIndex, x, y, expanded, date}]
+    let startDate = new Date();      // day 0 label
+
+    // UI refs
+    const countLabel = document.getElementById('countLabel');
+    const scaleLabel = document.getElementById('scaleLabel');
+    document.getElementById('addDayBtn').onclick = () => { addDay(); redraw(); };
+    document.getElementById('removeDayBtn').onclick = () => { removeDay(); redraw(); };
+    document.getElementById('resetViewBtn').onclick = () => { centerView(); redraw(); };
+    document.getElementById('toggleCurveBtn').onclick = () => { useCurves = !useCurves; redraw(); };
+    document.getElementById('toggleGlowBtn').onclick = () => { useGlow = !useGlow; redraw(); };
+
+    // Helpers
+    const clamp = (v,a,b)=>Math.max(a,Math.min(b,v));
+    const screenToWorld = pt => ({ x:(pt.x - view.offset.x)/view.scale, y:(pt.y - view.offset.y)/view.scale });
+    const worldToScreen = pt => ({ x: pt.x*view.scale + view.offset.x, y: pt.y*view.scale + view.offset.y });
+
+    function dateForIndex(i) {
+      const d = new Date(startDate);
+      d.setDate(d.getDate() + i);
+      return d;
+    }
+    function formatMMDD(d) {
+      return `${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // Build timeline with N days
+    function initDays(n=10) {
+      nodes = [];
+      const startX = -((n-1) * DAY_SPACING)/2;
+      for (let i=0;i<n;i++){
+        nodes.push({ dayIndex:i, x:startX + i*DAY_SPACING, y:AXIS_Y, r:NODE_RADIUS, expanded:false, date:dateForIndex(i) });
+      }
+      updateLabels();
+    }
+    function addDay() {
+      const i = nodes.length;
+      const x = nodes.length ? nodes[nodes.length-1].x + DAY_SPACING : 0;
+      nodes.push({ dayIndex:i, x, y:AXIS_Y, r:NODE_RADIUS, expanded:false, date:dateForIndex(i) });
+      updateLabels();
+    }
+    function removeDay() {
+      if (nodes.length>0) nodes.pop();
+      updateLabels();
+    }
+    function updateLabels() {
+      countLabel.textContent = String(nodes.length);
+      scaleLabel.textContent = view.scale.toFixed(2);
+    }
+
+    // Canvas setup
+    function resizeCanvas() {
+      const { clientWidth, clientHeight } = canvas.parentElement;
+      const ratio = dpi();
+      canvas.width = Math.max(1, Math.floor(clientWidth * ratio));
+      canvas.height = Math.max(1, Math.floor(clientHeight * ratio));
+      canvas.style.width = clientWidth + 'px';
+      canvas.style.height = clientHeight + 'px';
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      redraw();
+    }
+
+    // Draw
+    function redraw() {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      ctx.clearRect(0,0,w,h);
+
+      drawGrid(w,h);
+      ctx.save();
+      ctx.translate(view.offset.x, view.offset.y);
+      ctx.scale(view.scale, view.scale);
+
+      drawConnections();
+      drawNodes();
+      drawAxisAndTicks();
+      ctx.restore();
+
+      drawFrame(w,h);
+    }
+
+    function drawGrid(w,h){
+      const stepWorld = 100;
+      const step = stepWorld * view.scale;
+      if (step >= 15){
+        const ox = view.offset.x % step;
+        const oy = view.offset.y % step;
+        ctx.beginPath();
+        for(let x=ox;x<w;x+=step){ ctx.moveTo(x,0); ctx.lineTo(x,h); }
+        for(let y=oy;y<h;y+=step){ ctx.moveTo(0,y); ctx.lineTo(w,y); }
+        ctx.strokeStyle='rgba(255,255,255,0.05)';
+        ctx.lineWidth=1; ctx.stroke();
+      }
+      // world axes
+      const origin = worldToScreen({x:0,y:0});
+      ctx.beginPath();
+      ctx.moveTo(0,origin.y); ctx.lineTo(w,origin.y);
+      ctx.strokeStyle='rgba(255,255,255,0.08)';
+      ctx.lineWidth=1.5; ctx.stroke();
+    }
+
+    function drawAxisAndTicks(){
+      // Day ticks and date labels under each node (in world space)
+      ctx.save();
+      ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.font = `${12 / view.scale}px Inter, sans-serif`;
+      for(const n of nodes){
+        // tick
+        ctx.beginPath();
+        ctx.moveTo(n.x, AXIS_Y + 10);
+        ctx.lineTo(n.x, AXIS_Y + 22);
+        ctx.strokeStyle='rgba(255,255,255,0.25)';
+        ctx.lineWidth=1 / view.scale;
+        ctx.stroke();
+
+        // label
+        ctx.fillStyle='rgba(229,231,235,0.9)';
+        ctx.fillText(formatMMDD(n.date), n.x, AXIS_Y + 26);
+      }
+      ctx.restore();
+    }
+
+    function drawConnections(){
+      if(nodes.length<2) return;
+      ctx.beginPath();
+      let yMid = AXIS_Y; // connect through the axis center
+      if (useCurves){
+        for(let i=0;i<nodes.length-1;i++){
+          const a = nodes[i], b = nodes[i+1];
+          const dx = (b.x - a.x) * 0.5;
+          const c1 = { x:a.x + dx, y:yMid };
+          const c2 = { x:b.x - dx, y:yMid };
+          if(i===0) ctx.moveTo(a.x, yMid);
+          ctx.bezierCurveTo(c1.x, c1.y, c2.x, c2.y, b.x, yMid);
+        }
+      } else {
+        ctx.moveTo(nodes[0].x, yMid);
+        for(let i=1;i<nodes.length;i++){ ctx.lineTo(nodes[i].x, yMid); }
+      }
+      ctx.strokeStyle='rgba(255,255,255,0.28)';
+      ctx.lineWidth=2 / view.scale;
+      ctx.lineCap='round';
+      ctx.stroke();
+    }
+
+    function drawNodes(){
+      for(const n of nodes){
+        if(n.expanded){
+          drawBracketColumn(n);
+        } else {
+          drawDot(n);
+        }
+      }
+    }
+
+    function drawDot(n){
+      ctx.save();
+      if (useGlow){ ctx.shadowColor='rgba(255,255,255,0.6)'; ctx.shadowBlur=18 / view.scale; }
+      // outer soft ring
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r*1.25, 0, Math.PI*2);
+      ctx.fillStyle='rgba(147,197,253,0.08)';
+      ctx.fill();
+      // core
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, n.r, 0, Math.PI*2);
+      const g = ctx.createRadialGradient(n.x - n.r*0.3, n.y - n.r*0.3, n.r*0.2, n.x, n.y, n.r);
+      g.addColorStop(0, '#e5e7eb'); g.addColorStop(1, '#9ca3af');
+      ctx.fillStyle=g; ctx.fill();
+      // outline
+      ctx.lineWidth=1.5 / view.scale;
+      ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawBracketColumn(n){
+      const half = COLUMN_HEIGHT/2;
+      const top = n.y - half, bot = n.y + half;
+      const bracketOffset = n.r*1.6;
+
+      // side rails (brackets)
+      ctx.beginPath();
+      ctx.moveTo(n.x - bracketOffset, top);
+      ctx.lineTo(n.x - bracketOffset, bot);
+      ctx.moveTo(n.x + bracketOffset, top);
+      ctx.lineTo(n.x + bracketOffset, bot);
+      ctx.strokeStyle='rgba(255,255,255,0.38)';
+      ctx.lineWidth=2 / view.scale;
+      ctx.stroke();
+
+      // caps
+      ctx.beginPath();
+      ctx.moveTo(n.x - bracketOffset, top);
+      ctx.lineTo(n.x - bracketOffset + 10/view.scale, top);
+      ctx.moveTo(n.x + bracketOffset, top);
+      ctx.lineTo(n.x + bracketOffset - 10/view.scale, top);
+      ctx.moveTo(n.x - bracketOffset, bot);
+      ctx.lineTo(n.x - bracketOffset + 10/view.scale, bot);
+      ctx.moveTo(n.x + bracketOffset, bot);
+      ctx.lineTo(n.x + bracketOffset - 10/view.scale, bot);
+      ctx.strokeStyle='rgba(255,255,255,0.38)';
+      ctx.lineWidth=2 / view.scale;
+      ctx.stroke();
+
+      // inner vertical sub-dots
+      const gap = COLUMN_HEIGHT / (COLUMN_DOTS + 1);
+      for(let i=1;i<=COLUMN_DOTS;i++){
+        const yy = n.y - half + gap*i;
+        ctx.beginPath();
+        ctx.arc(n.x, yy, (n.r*0.55), 0, Math.PI*2);
+        ctx.fillStyle='#cfcfcf';
+        if (useGlow){ ctx.save(); ctx.shadowColor='rgba(255,255,255,0.45)'; ctx.shadowBlur=12 / view.scale; }
+        ctx.fill();
+        if (useGlow){ ctx.restore(); }
+      }
+
+      // center spine (faint)
+      ctx.beginPath();
+      ctx.moveTo(n.x, top); ctx.lineTo(n.x, bot);
+      ctx.strokeStyle='rgba(255,255,255,0.12)';
+      ctx.lineWidth=1 / view.scale;
+      ctx.stroke();
+    }
+
+    // Hit-test for click (in world space)
+    function nodeAt(worldPt){
+      // if expanded, click anywhere within bracket column; else inside dot
+      for (let i=nodes.length-1; i>=0; i--){
+        const n = nodes[i];
+        if (n.expanded){
+          const half = COLUMN_HEIGHT/2;
+          const left = n.x - n.r*1.6 - 10/view.scale; // little tolerance
+          const right = n.x + n.r*1.6 + 10/view.scale;
+          if (worldPt.x>=left && worldPt.x<=right && worldPt.y>=n.y-half-10/view.scale && worldPt.y<=n.y+half+10/view.scale)
+            return i;
+        } else {
+          const dx = worldPt.x - n.x, dy = worldPt.y - n.y;
+          if (dx*dx + dy*dy <= n.r*n.r*1.4) return i;
+        }
+      }
+      return null;
+    }
+
+    // Interaction: click to toggle expand/collapse
+    canvas.addEventListener('pointerdown', (e)=>{
+      const rect = canvas.getBoundingClientRect();
+      const screen = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const world = screenToWorld(screen);
+      const idx = nodeAt(world);
+      if (idx !== null){
+        nodes[idx].expanded = !nodes[idx].expanded;
+        redraw();
+      }
+    });
+
+    // Pan (space+drag or middle mouse)
+    let panning=false, panStart=null;
+    const keys = new Set();
+    canvas.addEventListener('pointerdown', (e)=>{
+      const rect = canvas.getBoundingClientRect();
+      const screen = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      const isMiddle = e.button === 1;
+      const isSpacePan = keys.has(' ') && e.button === 0;
+      if (isMiddle || isSpacePan){
+        panning = true;
+        panStart = { x: screen.x - view.offset.x, y: screen.y - view.offset.y };
+        canvas.setPointerCapture(e.pointerId);
+        e.preventDefault();
+      }
+    }, { capture:true });
+
+    canvas.addEventListener('pointermove', (e)=>{
+      if(!panning) return;
+      const rect = canvas.getBoundingClientRect();
+      const screen = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+      view.offset.x = screen.x - panStart.x;
+      view.offset.y = screen.y - panStart.y;
+      redraw();
+    });
+
+    const endPan = (e)=>{ panning=false; try{canvas.releasePointerCapture(e.pointerId);}catch{} };
+    canvas.addEventListener('pointerup', endPan);
+    canvas.addEventListener('pointercancel', endPan);
+
+    // Zoom to cursor
+    canvas.addEventListener('wheel', (e)=>{
+      const factor = Math.sign(e.deltaY) > 0 ? 0.9 : 1.1;
+      const before = screenToWorld({ x:e.offsetX, y:e.offsetY });
+      view.scale = clamp(view.scale * factor, view.minScale, view.maxScale);
+      const after = screenToWorld({ x:e.offsetX, y:e.offsetY });
+      view.offset.x += (after.x - before.x) * view.scale;
+      view.offset.y += (after.y - before.y) * view.scale;
+      updateLabels();
+      redraw();
+      e.preventDefault();
+    }, { passive:false });
+
+    // Space key for panning
+    window.addEventListener('keydown', (e)=>{ if(!e.repeat) keys.add(e.key); });
+    window.addEventListener('keyup',   (e)=>{ keys.delete(e.key); });
+
+    // Fit view to content
+    function centerView(){
+      if(nodes.length===0) return;
+      const pad = 140;
+      const minX = nodes[0].x - NODE_RADIUS - pad;
+      const maxX = nodes[nodes.length-1].x + NODE_RADIUS + pad;
+      const minY = -COLUMN_HEIGHT/2 - 120;
+      const maxY =  COLUMN_HEIGHT/2 + 160;
+      const worldW = maxX - minX, worldH = maxY - minY;
+
+      const cw = canvas.clientWidth, ch = canvas.clientHeight;
+      const sx = cw / worldW, sy = ch / worldH;
+      view.scale = clamp(Math.min(sx, sy), view.minScale, view.maxScale);
+
+      const centerWorld = { x:(minX+maxX)/2, y:(minY+maxY)/2 };
+      const centerScreen = { x:cw/2, y:ch/2 };
+      view.offset.x = centerScreen.x - centerWorld.x * view.scale;
+      view.offset.y = centerScreen.y - centerWorld.y * view.scale;
+      updateLabels();
+    }
+
+    // Init
+    function init(){ resizeCanvas(); initDays(10); centerView(); redraw(); }
+    window.addEventListener('resize', resizeCanvas);
+    init();
+  </script>
+</body>
+</html>
