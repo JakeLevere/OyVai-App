@@ -196,6 +196,30 @@
           </button>
           <p id="notesPathLabel" class="notes-path-label mt-3 text-xs text-slate-500 break-all"></p>
         </div>
+        <div class="rail-expanded-only border-t border-slate-800/70 px-4 py-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Custom States</p>
+          <p class="mt-3 text-sm text-slate-300">Add your own states for analysis.</p>
+          <button id="addStateBtn" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-purple-400/70 hover:bg-purple-500/10 hover:text-purple-200 transition" type="button">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+            </svg>
+            Add state
+          </button>
+          <div id="customStatesList" class="mt-4 space-y-3"></div>
+        </div>
+        <div class="rail-expanded-only border-t border-slate-800/70 px-4 py-5">
+          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">AI Analysis</p>
+          <p class="mt-3 text-sm text-slate-300">Categorize bullets by state and color-code.</p>
+          <div class="mt-4 flex items-center gap-2">
+            <button id="analyzeAllBtn" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-cyan-400/70 hover:bg-cyan-500/10 hover:text-cyan-200 transition" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3v18"/>
+              </svg>
+              Analyze all days
+            </button>
+          </div>
+          <p id="aiStatusLabel" class="mt-3 text-xs text-slate-500"></p>
+        </div>
       </div>
     </aside>
 
@@ -207,6 +231,11 @@
         <div id="timelineScroller" class="timeline-scroller h-full overflow-x-auto overflow-y-hidden">
           <div id="timeline" class="relative flex h-full items-stretch gap-6 px-12 py-16">
             <!-- Day columns injected via script -->
+          </div>
+        </div>
+        <div id="timelineScrollBar" class="border-t border-slate-800/70">
+          <div id="timelineScrollTrack" class="h-4 overflow-x-auto overflow-y-hidden">
+            <div id="timelineScrollContent" class="h-1"></div>
           </div>
         </div>
       </div>
@@ -228,6 +257,8 @@
       const railToggle = document.getElementById('railToggle');
       const chooseLocationBtn = document.getElementById('chooseLocationBtn');
       const notesPathLabel = document.getElementById('notesPathLabel');
+      const customStatesList = document.getElementById('customStatesList');
+      const addStateBtn = document.getElementById('addStateBtn');
       if (!stateRail) return;
 
       const storageKey = 'oyvai.stateRailCollapsed';
@@ -301,6 +332,88 @@
           }
         }
       }
+
+      // Custom states UI
+      async function refreshStatesUI() {
+        try {
+          const states = await window.timelineAPI?.getStates?.();
+          renderCustomStates(Array.isArray(states) ? states : []);
+        } catch (_) {}
+      }
+
+      function renderCustomStates(states) {
+        if (!customStatesList) return;
+        customStatesList.innerHTML = '';
+        const defaults = new Set(['m','p','f','c','u','r']);
+        const customs = states.filter(s => !defaults.has(String(s.code).toLowerCase()));
+        for (const s of customs) {
+          const article = document.createElement('article');
+          article.className = 'state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4';
+          const icon = document.createElement('div');
+          icon.className = `state-icon flex h-10 w-10 items-center justify-center rounded-2xl ${iconBgClass(s.color)} ${iconTextClass(s.color)}`;
+          icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>';
+          const labels = document.createElement('div');
+          labels.className = 'state-labels';
+          const title = document.createElement('p');
+          title.className = 'text-sm font-semibold text-slate-100';
+          title.textContent = s.title || s.code;
+          const desc = document.createElement('p');
+          desc.className = 'text-xs text-slate-400';
+          desc.textContent = s.description || '';
+          labels.appendChild(title);
+          labels.appendChild(desc);
+          article.appendChild(icon);
+          article.appendChild(labels);
+          customStatesList.appendChild(article);
+        }
+      }
+
+      addStateBtn?.addEventListener('click', async () => {
+        try {
+          const res = await window.timelineAPI?.addState?.({ title: 'New State', description: '', color: 'slate' });
+          if (res?.success) {
+            await refreshStatesUI();
+            document.dispatchEvent(new CustomEvent('oyvai-states-updated', { detail: {} }));
+          } else {
+            alert('Could not add state.');
+          }
+        } catch (e) {
+          alert('Could not add state.');
+        }
+      });
+
+      refreshStatesUI();
+      window.timelineAPI?.onStatesUpdated?.(() => refreshStatesUI());
+
+      // Analyze all button
+      const analyzeAllBtn = document.getElementById('analyzeAllBtn');
+      const aiStatusLabel = document.getElementById('aiStatusLabel');
+      analyzeAllBtn?.addEventListener('click', async () => {
+        if (!aiStatusLabel) return;
+        aiStatusLabel.textContent = 'Analyzing all days...';
+        aiStatusLabel.classList.remove('text-rose-400', 'text-emerald-400');
+        aiStatusLabel.classList.add('text-slate-400');
+        analyzeAllBtn.disabled = true;
+        try {
+          const resp = await window.timelineAPI?.analyzeAllDays?.(true);
+          if (resp?.success) {
+            aiStatusLabel.textContent = resp.updated > 0 ? `Analyzed ${resp.updated} day(s).` : 'Nothing to update';
+            aiStatusLabel.classList.remove('text-slate-400', 'text-rose-400');
+            aiStatusLabel.classList.add('text-emerald-400');
+          } else if (resp?.reason === 'NO_OPENAI_KEY') {
+            aiStatusLabel.textContent = 'Set OPENAI_API_KEY';
+            aiStatusLabel.classList.add('text-amber-400');
+          } else {
+            aiStatusLabel.textContent = 'Analysis failed';
+            aiStatusLabel.classList.add('text-rose-400');
+          }
+        } catch (_) {
+          aiStatusLabel.textContent = 'Analysis failed';
+          aiStatusLabel.classList.add('text-rose-400');
+        } finally {
+          analyzeAllBtn.disabled = false;
+        }
+      });
     }
 
     function shortenPath(path) {
@@ -315,6 +428,8 @@
       const timelineViewport = document.getElementById('timelineViewport');
       const timelineScroller = document.getElementById('timelineScroller');
       const timeline = document.getElementById('timeline');
+      const timelineScrollTrack = document.getElementById('timelineScrollTrack');
+      const timelineScrollContent = document.getElementById('timelineScrollContent');
       const todayMarker = document.getElementById('todayMarker');
       if (!timeline || !timelineViewport || !timelineScroller || !todayMarker) return;
 
@@ -340,9 +455,11 @@
         requestAnimationFrame(() => {
           scrollColumnIntoView(todayColumn, timelineScroller);
           updateTodayMarker();
+          updateScrollbarSize();
         });
       } else {
         updateTodayMarker();
+        updateScrollbarSize();
       }
 
       if (window.timelineAPI?.getNotesFilePath) {
@@ -352,7 +469,19 @@
       }
 
       timelineScroller.addEventListener('scroll', updateTodayMarker, { passive: true });
-      window.addEventListener('resize', () => requestAnimationFrame(updateTodayMarker));
+      window.addEventListener('resize', () => { requestAnimationFrame(updateTodayMarker); requestAnimationFrame(updateScrollbarSize); });
+
+      // Bottom scrollbar sync
+      let _syncing = false;
+      function updateScrollbarSize() {
+        if (!timelineScrollTrack || !timelineScrollContent) return;
+        timelineScrollContent.style.width = `${Math.max(timeline.scrollWidth, timelineScroller.clientWidth)}px`;
+        if (!_syncing) { _syncing = true; timelineScrollTrack.scrollLeft = timelineScroller.scrollLeft; _syncing = false; }
+      }
+      if (timelineScrollTrack && timelineScrollContent) {
+        timelineScroller.addEventListener('scroll', () => { if (_syncing) return; _syncing = true; timelineScrollTrack.scrollLeft = timelineScroller.scrollLeft; _syncing = false; }, { passive: true });
+        timelineScrollTrack.addEventListener('scroll', () => { if (_syncing) return; _syncing = true; timelineScroller.scrollLeft = timelineScrollTrack.scrollLeft; _syncing = false; }, { passive: true });
+      }
 
       window.timelineAPI?.onNotesPathChanged?.(() => {
         reloadNotes();
@@ -436,11 +565,15 @@
         handleBulletKeydown(event, noteArea);
       });
 
-      const footer = document.createElement('div');
-      footer.className = 'mt-4 flex items-center justify-between gap-3';
+      // Analysis preview
+      const analysisPreview = document.createElement('div');
+      analysisPreview.className = 'mt-3 space-y-1';
 
-      const status = document.createElement('span');
-      status.className = 'text-xs text-slate-500';
+      const footer = document.createElement('div');
+      footer.className = 'mt-4 flex items-center justify-center gap-2';
+
+      const status = document.createElement('div');
+      status.className = 'mt-2 text-center text-xs text-slate-500';
       status.textContent = '';
 
       const saveButton = document.createElement('button');
@@ -453,16 +586,45 @@
         handleSave(date, noteArea, status, saveButton);
       });
 
-      footer.appendChild(status);
-      footer.appendChild(saveButton);
+      const analyzeButton = document.createElement('button');
+      analyzeButton.type = 'button';
+      analyzeButton.className = 'inline-flex items-center gap-2 rounded-full border border-cyan-500/50 bg-cyan-500/15 px-3 py-2 text-[0.7rem] font-semibold uppercase tracking-[0.25em] text-cyan-200 transition hover:bg-cyan-500/25 hover:border-cyan-500/80 disabled:opacity-60 disabled:cursor-not-allowed';
+      analyzeButton.textContent = 'Analyze';
+      analyzeButton.addEventListener('click', async () => {
+        setStatus(status, 'Analyzing...', ['text-slate-400'], false);
+        analyzeButton.disabled = true;
+        try {
+          const resp = await window.timelineAPI?.analyzeDay?.(toDateKey(date), true);
+          if (resp?.success) {
+            flashStatus(status, 'Analyzed', ['text-emerald-400']);
+            document.dispatchEvent(new CustomEvent('oyvai-note-saved', { detail: { dateKey: toDateKey(date) } }));
+          } else if (resp?.reason === 'NO_OPENAI_KEY') {
+            flashStatus(status, 'Set OPENAI_API_KEY', ['text-amber-400']);
+          } else {
+            flashStatus(status, 'Analysis failed', ['text-rose-400']);
+          }
+        } catch (_) {
+          flashStatus(status, 'Analysis failed', ['text-rose-400']);
+        } finally {
+          analyzeButton.disabled = false;
+        }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'flex items-center gap-2';
+      actions.appendChild(analyzeButton);
+      actions.appendChild(saveButton);
+      footer.appendChild(actions);
 
       lane.appendChild(noteArea);
+      lane.appendChild(analysisPreview);
       lane.appendChild(footer);
+      lane.appendChild(status);
 
       column.appendChild(header);
       column.appendChild(lane);
 
-      return { column, noteArea, status, saveButton, date };
+      return { column, noteArea, status, saveButton, analysisPreview, date };
     }
 
     async function loadNotesForColumns(columnViews) {
@@ -486,12 +648,14 @@
         try {
           const result = await window.timelineAPI.loadDailyNote(toDateKey(view.date));
           if (result && typeof result.content === 'string' && result.content.length > 0) {
+            const bullets = extractBulletsFromText(result.content);
             view.noteArea.value = result.content;
-            view.status.textContent = 'Saved';
-            view.status.classList.remove('text-amber-400', 'text-rose-400', 'text-slate-400');
-            view.status.classList.add('text-emerald-400');
+            renderAnalysisPreview(view.analysisPreview, bullets, result.categories || []);
+            view.status.textContent = '';
+            view.status.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400');
           } else {
             view.noteArea.value = '';
+            renderAnalysisPreview(view.analysisPreview, [], []);
             view.status.textContent = '';
             view.status.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400');
           }
@@ -527,16 +691,12 @@
       }
 
       saveButton.disabled = true;
-      status.textContent = 'Saving...';
-      status.classList.remove('text-amber-400', 'text-rose-400');
-      status.classList.add('text-slate-400');
+      setStatus(status, 'Saving...', ['text-slate-400'], false);
 
       try {
         const response = await window.timelineAPI.saveDailyNote(toDateKey(date), formatted);
         if (response && response.success) {
-          status.textContent = 'Saved';
-          status.classList.remove('text-slate-400', 'text-rose-400', 'text-amber-400');
-          status.classList.add('text-emerald-400');
+          flashStatus(status, 'Saved', ['text-emerald-400']);
           document.dispatchEvent(new CustomEvent('oyvai-note-saved', {
             detail: { dateKey: toDateKey(date) },
           }));
@@ -545,9 +705,7 @@
         }
       } catch (error) {
         console.error('Failed to save note', error);
-        status.textContent = 'Save failed';
-        status.classList.remove('text-emerald-400', 'text-slate-400');
-        status.classList.add('text-rose-400');
+        flashStatus(status, 'Save failed', ['text-rose-400']);
       } finally {
         saveButton.disabled = false;
       }
@@ -595,6 +753,72 @@
           return `- ${cleaned}`;
         });
       return formatted.join('\n');
+    }
+
+    function extractBulletsFromText(text) {
+      return text.replace(/\r\n/g, '\n').split('\n').map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/^-\s*/, ''));
+    }
+
+    const CATEGORY_STYLE_MAP = {
+      m: { border: 'border-emerald-400', dot: 'bg-emerald-400' },
+      p: { border: 'border-sky-400', dot: 'bg-sky-400' },
+      f: { border: 'border-amber-400', dot: 'bg-amber-400' },
+      c: { border: 'border-purple-400', dot: 'bg-purple-400' },
+      u: { border: 'border-rose-400', dot: 'bg-rose-400' },
+      r: { border: 'border-cyan-400', dot: 'bg-cyan-400' },
+      _: { border: 'border-slate-600', dot: 'bg-slate-500' },
+    };
+
+    function renderAnalysisPreview(container, bullets, categories) {
+      if (!container) return;
+      container.innerHTML = '';
+      if (!Array.isArray(bullets) || bullets.length === 0) return;
+      for (let i = 0; i < bullets.length; i += 1) {
+        const code = String(categories?.[i] || '').toLowerCase();
+        const style = CATEGORY_STYLE_MAP[code] || CATEGORY_STYLE_MAP._;
+        const row = document.createElement('div');
+        row.className = `flex items-start gap-2 rounded-lg border-l-4 ${style.border} bg-slate-900/40 px-2 py-1.5`;
+        const dot = document.createElement('span');
+        dot.className = `mt-1 inline-block h-2.5 w-2.5 rounded-full ${style.dot}`;
+        const text = document.createElement('div');
+        text.className = 'text-xs text-slate-300';
+        text.textContent = bullets[i];
+        row.appendChild(dot);
+        row.appendChild(text);
+        container.appendChild(row);
+      }
+    }
+
+    function clearStatus(el) { if (!el) return; el.textContent = ''; el.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400'); }
+    function setStatus(el, text, classes = [], autoClear = false, delayMs = 2000) {
+      if (!el) return; if (el._statusTimer) { clearTimeout(el._statusTimer); el._statusTimer = null; }
+      el.textContent = text || ''; el.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400');
+      if (Array.isArray(classes) && classes.length) el.classList.add(...classes);
+      if (autoClear) { el._statusTimer = setTimeout(() => clearStatus(el), delayMs); }
+    }
+    function flashStatus(el, text, classes = [], delayMs = 2200) { setStatus(el, text, classes, true, delayMs); }
+
+    function iconBgClass(color) {
+      switch (String(color || 'slate')) {
+        case 'emerald': return 'bg-emerald-500/15';
+        case 'sky': return 'bg-sky-500/15';
+        case 'amber': return 'bg-amber-500/15';
+        case 'purple': return 'bg-purple-500/15';
+        case 'rose': return 'bg-rose-500/15';
+        case 'cyan': return 'bg-cyan-500/15';
+        default: return 'bg-slate-500/15';
+      }
+    }
+    function iconTextClass(color) {
+      switch (String(color || 'slate')) {
+        case 'emerald': return 'text-emerald-300';
+        case 'sky': return 'text-sky-300';
+        case 'amber': return 'text-amber-300';
+        case 'purple': return 'text-purple-300';
+        case 'rose': return 'text-rose-300';
+        case 'cyan': return 'text-cyan-300';
+        default: return 'text-slate-300';
+      }
     }
 
     function setCaretToEnd(field) {

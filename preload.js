@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 const notesPathListeners = new Set();
 const notesUpdatedListeners = new Set();
+const statesUpdatedListeners = new Set();
 
 ipcRenderer.on('notes:path-changed', (_event, payload = {}) => {
   for (const listener of notesPathListeners) {
@@ -43,12 +44,30 @@ ipcRenderer.on('notes:updated', (_event, payload = {}) => {
   }
 });
 
+ipcRenderer.on('states:updated', (_event, payload = {}) => {
+  for (const listener of statesUpdatedListeners) {
+    try { listener(payload); } catch (error) { console.error('states:updated listener error', error); }
+  }
+  try {
+    if (typeof window !== 'undefined' && window.document) {
+      window.document.dispatchEvent(new CustomEvent('oyvai-states-updated', { detail: payload }));
+    }
+  } catch (error) {
+    console.error('Failed to dispatch states updated event', error);
+  }
+});
+
 contextBridge.exposeInMainWorld('timelineAPI', {
   selectNotesFile: () => ipcRenderer.invoke('notes:select-file'),
   getNotesFilePath: () => ipcRenderer.invoke('notes:get-path'),
   saveDailyNote: (dateKey, content) =>
     ipcRenderer.invoke('notes:save', { dateKey, content }),
   loadDailyNote: (dateKey) => ipcRenderer.invoke('notes:load', dateKey),
+  analyzeDay: (dateKey, force = false) => ipcRenderer.invoke('notes:analyze-day', { dateKey, force }),
+  analyzeAllDays: (force = true) => ipcRenderer.invoke('notes:analyze-all', { force }),
+  getStates: () => ipcRenderer.invoke('states:get').then(r => r?.states || []),
+  addState: (state) => ipcRenderer.invoke('states:add', state),
+  updateState: (state) => ipcRenderer.invoke('states:update', state),
   onNotesPathChanged: (callback) => {
     if (typeof callback !== 'function') {
       return () => {};
@@ -66,5 +85,10 @@ contextBridge.exposeInMainWorld('timelineAPI', {
     return () => {
       notesUpdatedListeners.delete(callback);
     };
+  },
+  onStatesUpdated: (callback) => {
+    if (typeof callback !== 'function') { return () => {}; }
+    statesUpdatedListeners.add(callback);
+    return () => { statesUpdatedListeners.delete(callback); };
   },
 });
