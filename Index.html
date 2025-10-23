@@ -505,30 +505,30 @@ function initRail() {
     const currentColor = String(state.color || 'slate').toLowerCase();
 
     const panel = document.createElement('div');
-    panel.className = 'state-options mt-2 rounded-2xl border border-slate-800/70 bg-slate-900/60 p-3 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.8)]';
+    panel.className = 'state-options mt-2 rounded-2xl border border-slate-800/70 bg-slate-900/60 p-3 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.8)] overflow-hidden';
     panel.addEventListener('click', (e) => e.stopPropagation());
 
     const nameRow = document.createElement('div');
-    nameRow.className = 'flex items-center gap-2';
+    nameRow.className = 'flex items-center gap-2 min-w-0';
     const nameLabel = document.createElement('label');
     nameLabel.className = 'w-24 text-xs text-slate-400';
     nameLabel.textContent = 'Name';
     const titleInput = document.createElement('input');
     titleInput.type = 'text';
-    titleInput.className = 'flex-1 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
+    titleInput.className = 'flex-1 min-w-0 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
     titleInput.placeholder = 'State name';
     titleInput.value = state.title || baseTitle || '';
     nameRow.appendChild(nameLabel);
     nameRow.appendChild(titleInput);
 
     const descRow = document.createElement('div');
-    descRow.className = 'mt-3 flex items-center gap-2';
+    descRow.className = 'mt-3 flex items-center gap-2 min-w-0';
     const descLabel = document.createElement('label');
     descLabel.className = 'w-24 text-xs text-slate-400';
     descLabel.textContent = 'Description';
     const descInput = document.createElement('input');
     descInput.type = 'text';
-    descInput.className = 'flex-1 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
+    descInput.className = 'flex-1 min-w-0 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
     descInput.placeholder = 'Brief description';
     descInput.value = state.description || baseDescription || '';
     descRow.appendChild(descLabel);
