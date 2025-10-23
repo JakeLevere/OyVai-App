@@ -522,11 +522,34 @@ async function classifyBulletsWithOpenAI(bullets, states, apiKey) {
   } catch (_) { return null; }
 }
 function buildClassificationPrompt(bullets, states) {
-  const compact = states.map((s) => ({ code: s.code, title: s.title, description: s.description })).slice(0, 20);
-  const allowed = compact.map((s) => s.code);
-  const system = 'You classify each input bullet into exactly one of the provided states. Use the short code for the best-fitting state. Respond ONLY with strict JSON.';
-  const user = { bullets, states: compact, instructions: 'Return JSON {"labels":[code,...]} aligned to bullets. Only use provided state codes. No explanations.', allowed };
-  return { model: 'gpt-4o-mini', temperature: 0, response_format: { type: 'json_object' }, messages: [ { role: 'system', content: system }, { role: 'user', content: JSON.stringify(user) } ] };
+  // Include all available states so the model compares each bullet against every description
+  const expanded = states.map((s) => ({ code: s.code, title: s.title, description: s.description }));
+  const allowed = expanded.map((s) => s.code);
+  const system = (
+    'You are a precise classifier. For each input bullet, directly compare the bullet text against EVERY provided state. ' +
+    'Each state description is a comma-separated keyword list. Split descriptions on commas, trim, lowercase, and treat them as keywords/phrases. ' +
+    'Compute a correlation score per state using: (1) count of exact keyword/phrase overlaps (case-insensitive), (2) coverage of distinct keywords, and (3) semantic similarity between bullet terms and the keywords. ' +
+    'Choose exactly ONE state CODE per bullet - the state with the highest correlation. Break ties by: more exact matches, then longer phrase matches, then better semantic similarity. ' +
+    'Use ONLY the provided state codes. Respond ONLY with strict JSON.'
+  );
+  const user = {
+    bullets,
+    states: expanded,
+    instructions:
+      'Return JSON {"labels":[code,...]} aligned 1:1 with bullets. ' +
+      'Compare each bullet to ALL states using their comma-separated keyword descriptions and select the single most correlated code. ' +
+      'Only use codes in "allowed". No explanations.',
+    allowed,
+  };
+  return {
+    model: 'gpt-4o-mini',
+    temperature: 0,
+    response_format: { type: 'json_object' },
+    messages: [
+      { role: 'system', content: system },
+      { role: 'user', content: JSON.stringify(user) },
+    ],
+  };
 }
 function fetchOpenAI(pathname, apiKey, body) {
   return new Promise((resolve, reject) => {

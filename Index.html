@@ -744,6 +744,10 @@ function initRail() {
       window.timelineAPI?.onNotesUpdated?.(() => {
         reloadNotes();
       });
+      // When states are updated (e.g., colors changed), refresh previews so bullet colors stay in sync
+      window.timelineAPI?.onStatesUpdated?.(() => {
+        reloadNotes();
+      });
 
       document.addEventListener('oyvai-notes-path-changed', reloadNotes);
       document.addEventListener('oyvai-note-saved', reloadNotes);
@@ -898,18 +902,24 @@ function initRail() {
         return;
       }
 
+      // Load current states once so we can color bullets by their assigned state color
+      let states = [];
+      try {
+        states = await window.timelineAPI.getStates();
+      } catch (_) {}
+
       for (const view of columnViews) {
         try {
           const result = await window.timelineAPI.loadDailyNote(toDateKey(view.date));
           if (result && typeof result.content === 'string' && result.content.length > 0) {
             const bullets = extractBulletsFromText(result.content);
             view.noteArea.value = result.content;
-            renderAnalysisPreview(view.analysisPreview, bullets, result.categories || []);
+            renderAnalysisPreview(view.analysisPreview, bullets, result.categories || [], states);
             view.status.textContent = '';
             view.status.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400');
           } else {
             view.noteArea.value = '';
-            renderAnalysisPreview(view.analysisPreview, [], []);
+            renderAnalysisPreview(view.analysisPreview, [], [], states);
             view.status.textContent = '';
             view.status.classList.remove('text-amber-400', 'text-rose-400', 'text-emerald-400', 'text-slate-400');
           }
@@ -1013,27 +1023,43 @@ function initRail() {
       return text.replace(/\r\n/g, '\n').split('\n').map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/^-\s*/, ''));
     }
 
-    const CATEGORY_STYLE_MAP = {
-      m: { border: 'border-emerald-400', dot: 'bg-emerald-400' },
-      p: { border: 'border-sky-400', dot: 'bg-sky-400' },
-      f: { border: 'border-amber-400', dot: 'bg-amber-400' },
-      c: { border: 'border-purple-400', dot: 'bg-purple-400' },
-      u: { border: 'border-rose-400', dot: 'bg-rose-400' },
-      r: { border: 'border-cyan-400', dot: 'bg-cyan-400' },
-      _: { border: 'border-slate-600', dot: 'bg-slate-500' },
-    };
+    function bulletBorderClass(color) {
+      switch (String(color || 'slate')) {
+        case 'emerald': return 'border-emerald-400';
+        case 'sky': return 'border-sky-400';
+        case 'amber': return 'border-amber-400';
+        case 'purple': return 'border-purple-400';
+        case 'rose': return 'border-rose-400';
+        case 'cyan': return 'border-cyan-400';
+        default: return 'border-slate-600';
+      }
+    }
+    function bulletDotClass(color) {
+      switch (String(color || 'slate')) {
+        case 'emerald': return 'bg-emerald-400';
+        case 'sky': return 'bg-sky-400';
+        case 'amber': return 'bg-amber-400';
+        case 'purple': return 'bg-purple-400';
+        case 'rose': return 'bg-rose-400';
+        case 'cyan': return 'bg-cyan-400';
+        default: return 'bg-slate-500';
+      }
+    }
 
-    function renderAnalysisPreview(container, bullets, categories) {
+    function renderAnalysisPreview(container, bullets, categories, states = []) {
       if (!container) return;
       container.innerHTML = '';
       if (!Array.isArray(bullets) || bullets.length === 0) return;
       for (let i = 0; i < bullets.length; i += 1) {
         const code = String(categories?.[i] || '').toLowerCase();
-        const style = CATEGORY_STYLE_MAP[code] || CATEGORY_STYLE_MAP._;
+        const state = Array.isArray(states) ? states.find(s => String(s.code || '').toLowerCase() === code) : null;
+        const color = state?.color || 'slate';
+        const borderCls = bulletBorderClass(color);
+        const dotCls = bulletDotClass(color);
         const row = document.createElement('div');
-        row.className = `flex items-start gap-2 rounded-lg border-l-4 ${style.border} bg-slate-900/40 px-2 py-1.5`;
+        row.className = `flex items-start gap-2 rounded-lg border-l-4 ${borderCls} bg-slate-900/40 px-2 py-1.5`;
         const dot = document.createElement('span');
-        dot.className = `mt-1 inline-block h-2.5 w-2.5 rounded-full ${style.dot}`;
+        dot.className = `mt-1 inline-block h-2.5 w-2.5 rounded-full ${dotCls}`;
         const text = document.createElement('div');
         text.className = 'text-xs text-slate-300';
         text.textContent = bullets[i];
