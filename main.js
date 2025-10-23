@@ -153,7 +153,7 @@ function registerIpcHandlers() {
     return { content: text, categories: codes };
   });
 
-  // States management (no delete)
+  // States management (with delete for custom states)
   ipcMain.handle('states:get', async () => ({ states: loadAllStates() }));
   ipcMain.handle('states:add', async (_event, payload = {}) => {
     const { title, description, color, code } = payload || {};
@@ -199,6 +199,23 @@ function registerIpcHandlers() {
     saveSettings(settings);
     broadcastStatesUpdated();
     return { success: true };
+  });
+  ipcMain.handle('states:delete', async (_event, payload = {}) => {
+    const { code } = payload || {};
+    if (!code) return { success: false };
+    const c = String(code).toLowerCase();
+    const settings = loadSettings();
+    if (!Array.isArray(settings.customStates)) settings.customStates = [];
+    const before = settings.customStates.length;
+    settings.customStates = settings.customStates.filter(
+      (s) => String(s.code).toLowerCase() !== c
+    );
+    const changed = settings.customStates.length !== before;
+    if (changed) {
+      saveSettings(settings);
+      broadcastStatesUpdated();
+    }
+    return { success: changed };
   });
 
   // Analysis endpoints

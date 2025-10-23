@@ -12,7 +12,13 @@
       background-color: #020617;
       overflow: hidden;
     }
+
     .state-rail {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 30;
       width: 18rem;
       transition: width 220ms ease;
     }
@@ -98,7 +104,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 </head>
 <body class="text-slate-100">
-  <div class="flex h-screen w-screen overflow-hidden bg-slate-950">
+  <div class="relative flex h-screen w-screen overflow-hidden bg-slate-950">
     <!-- Primary States Rail -->
     <aside id="stateRail" class="state-rail shrink-0 border-r border-slate-800/80 bg-slate-900/40 backdrop-blur-sm" data-collapsed="true">
       <div class="flex h-full flex-col">
@@ -116,8 +122,8 @@
           </button>
         </div>
         <div class="flex-1 overflow-y-auto px-4 pb-6">
-          <div class="space-y-3">
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Mental">
+          <div id="defaultStatesList" class="space-y-3">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Mental" data-code="m" data-type="default">
               <div class="state-icon mt-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 9.75c.75-.75 2.25-1.125 3.75-.375s2.25 2.625 1.5 3.375m-2.25 1.5c1.5 0 2.25.75 3 .75s1.5-.75 1.5-.75M4.5 12A7.5 7.5 0 0 1 12 4.5 7.5 7.5 0 0 1 19.5 12 7.5 7.5 0 0 1 12 19.5 7.5 7.5 0 0 1 4.5 12Z"/>
@@ -128,7 +134,7 @@
                 <p class="text-xs text-slate-400">Mindset and mood</p>
               </div>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Physical">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Physical" data-code="p" data-type="default">
               <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 9.75 9 7.5m6 0 3 2.25m-9 9 3-2.25m0 0 3 2.25m-3-2.25V7.5"/>
@@ -139,7 +145,7 @@
                 <p class="text-xs text-slate-400">Energy and body state</p>
               </div>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Financial">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Financial" data-code="f" data-type="default">
               <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 15.75V9.75A1.5 1.5 0 0 1 7.5 8.25h9A1.5 1.5 0 0 1 18 9.75v6m-12 0h12m-12 0v1.5A1.5 1.5 0 0 0 7.5 18.75h9a1.5 1.5 0 0 0 1.5-1.5v-1.5m-10.5-6h6"/>
@@ -150,7 +156,7 @@
                 <p class="text-xs text-slate-400">Cash flow and runway</p>
               </div>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Career">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Career" data-code="c" data-type="default">
               <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15.75 12 9.75l4.5 6m-9 0h9"/>
@@ -161,7 +167,7 @@
                 <p class="text-xs text-slate-400">Work and momentum</p>
               </div>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Purpose">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Purpose" data-code="u" data-type="default">
               <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="m12 3 2.31 5.28L20 9.21l-4 4.04.94 5.62L12 16.9l-4.94 1.97L8 13.25 4 9.21l5.69-.93z"/>
@@ -172,7 +178,7 @@
                 <p class="text-xs text-slate-400">Meaning and direction</p>
               </div>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Record">
+            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Record" data-code="r" data-type="default">
               <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75A3.75 3.75 0 0 0 15.75 12V7.5a3.75 3.75 0 1 0-7.5 0V12A3.75 3.75 0 0 0 12 15.75Zm0 0v3m4.5-3a4.5 4.5 0 0 1-9 0"/>
@@ -252,169 +258,415 @@
       initTimeline();
     });
 
-    function initRail() {
-      const stateRail = document.getElementById('stateRail');
-      const railToggle = document.getElementById('railToggle');
-      const chooseLocationBtn = document.getElementById('chooseLocationBtn');
-      const notesPathLabel = document.getElementById('notesPathLabel');
-      const customStatesList = document.getElementById('customStatesList');
-      const addStateBtn = document.getElementById('addStateBtn');
-      if (!stateRail) return;
 
-      const storageKey = 'oyvai.stateRailCollapsed';
-      const stored = localStorage.getItem(storageKey);
-      const defaultCollapsed = stored === null ? true : stored === 'true';
-      setRailCollapsed(defaultCollapsed);
+function initRail() {
+  const stateRail = document.getElementById('stateRail');
+  const railToggle = document.getElementById('railToggle');
+  const chooseLocationBtn = document.getElementById('chooseLocationBtn');
+  const notesPathLabel = document.getElementById('notesPathLabel');
+  const defaultStatesList = document.getElementById('defaultStatesList');
+  const customStatesList = document.getElementById('customStatesList');
+  const addStateBtn = document.getElementById('addStateBtn');
+  if (!stateRail) return;
 
-      railToggle?.addEventListener('click', () => {
-        setRailCollapsed(!(stateRail.dataset.collapsed === 'true'));
-      });
+  const ALLOWED_STATE_COLORS = ['emerald','sky','amber','purple','rose','cyan','slate'];
+  let _statesCache = [];
+  let _openOptions = null;
 
-      chooseLocationBtn?.addEventListener('click', async () => {
-        if (!window.timelineAPI?.selectNotesFile) {
-          updateNotesPathLabel('Notes file selection only works in the desktop app.', true);
-          return;
-        }
-        try {
-          const result = await window.timelineAPI.selectNotesFile();
-          if (result && !result.canceled && result.filePath) {
-            updateNotesPathLabel(result.filePath);
-            document.dispatchEvent(new CustomEvent('oyvai-notes-path-changed'));
-          }
-        } catch (error) {
-          console.error('Failed to pick notes file', error);
-          updateNotesPathLabel('We could not set the notes file.', true);
-        }
-      });
+  const storageKey = 'oyvai.stateRailCollapsed';
+  const stored = localStorage.getItem(storageKey);
+  const defaultCollapsed = stored === null ? true : stored === 'true';
+  setRailCollapsed(defaultCollapsed);
 
-      if (window.timelineAPI?.getNotesFilePath) {
-        window.timelineAPI.getNotesFilePath()
-          .then(path => {
-            if (path) {
-              updateNotesPathLabel(path);
-            }
-          })
-          .catch(error => {
-            console.error('Failed to load notes path', error);
-          });
-      } else if (notesPathLabel) {
-        updateNotesPathLabel(null, true);
-        notesPathLabel.textContent = 'Notes file selection requires the desktop app.';
+  railToggle?.addEventListener('click', () => {
+    setRailCollapsed(!(stateRail.dataset.collapsed === 'true'));
+  });
+
+  chooseLocationBtn?.addEventListener('click', async () => {
+    if (!window.timelineAPI?.selectNotesFile) {
+      updateNotesPathLabel('Notes file selection only works in the desktop app.', true);
+      return;
+    }
+    try {
+      const result = await window.timelineAPI.selectNotesFile();
+      if (result && !result.canceled && result.filePath) {
+        updateNotesPathLabel(result.filePath);
+        document.dispatchEvent(new CustomEvent('oyvai-notes-path-changed'));
       }
+    } catch (error) {
+      console.error('Failed to pick notes file', error);
+      updateNotesPathLabel('We could not set the notes file.', true);
+    }
+  });
 
-      window.timelineAPI?.onNotesPathChanged?.((payload = {}) => {
-        if (payload.filePath) {
-          updateNotesPathLabel(payload.filePath);
+  if (window.timelineAPI?.getNotesFilePath) {
+    window.timelineAPI.getNotesFilePath()
+      .then(path => {
+        if (path) {
+          updateNotesPathLabel(path);
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load notes path', error);
+      });
+  } else if (notesPathLabel) {
+    updateNotesPathLabel(null, true);
+    notesPathLabel.textContent = 'Notes file selection requires the desktop app.';
+  }
+
+  window.timelineAPI?.onNotesPathChanged?.((payload = {}) => {
+    if (payload.filePath) {
+      updateNotesPathLabel(payload.filePath);
+    } else {
+      updateNotesPathLabel(null, true);
+    }
+  });
+
+  function setRailCollapsed(collapsed) {
+    stateRail.dataset.collapsed = collapsed ? 'true' : 'false';
+    localStorage.setItem(storageKey, collapsed ? 'true' : 'false');
+    railToggle.title = collapsed ? 'Expand primary states panel' : 'Collapse primary states panel';
+  }
+
+  function updateNotesPathLabel(path, isWarning = false) {
+    if (!notesPathLabel) return;
+    if (!path) {
+      notesPathLabel.textContent = 'No notes file set.';
+      notesPathLabel.classList.toggle('text-amber-400', true);
+      notesPathLabel.removeAttribute('title');
+    } else {
+      const shortened = shortenPath(path);
+      notesPathLabel.textContent = shortened;
+      notesPathLabel.title = path;
+      notesPathLabel.classList.toggle('text-amber-400', Boolean(isWarning));
+      if (!isWarning) {
+        notesPathLabel.classList.remove('text-amber-400');
+      }
+    }
+  }
+
+  function ensureDefaultTileMetadata(tile) {
+    if (!tile) return;
+    if (!tile.dataset.defaultTitle) {
+      const labelEl = tile.querySelector('.state-labels p.text-sm');
+      tile.dataset.defaultTitle = labelEl?.textContent || '';
+    }
+    if (!tile.dataset.defaultDescription) {
+      const descEl = tile.querySelector('.state-labels p.text-xs');
+      tile.dataset.defaultDescription = descEl?.textContent || '';
+    }
+    if (!tile.dataset.defaultIconBase) {
+      const iconEl = tile.querySelector('.state-icon');
+      if (iconEl) {
+        const classes = iconEl.className.split(/\s+/).filter(Boolean);
+        const base = classes.filter(cls => !cls.startsWith('bg-') && !cls.startsWith('text-')).join(' ');
+        const defaultBg = classes.find(cls => cls.startsWith('bg-')) || '';
+        const defaultText = classes.find(cls => cls.startsWith('text-')) || '';
+        tile.dataset.defaultIconBase = base;
+        tile.dataset.defaultIconBg = defaultBg;
+        tile.dataset.defaultIconText = defaultText;
+      }
+    }
+  }
+
+  // Custom states UI
+  async function refreshStatesUI() {
+    try {
+      const states = await window.timelineAPI?.getStates?.();
+      _statesCache = Array.isArray(states) ? states : [];
+      if (_openOptions?.type === 'custom') {
+        closeOptionsPanel();
+      }
+      renderCustomStates(_statesCache);
+      refreshDefaultTiles();
+      attachDefaultTileHandlers();
+    } catch (_) {}
+  }
+
+  function renderCustomStates(states) {
+    if (!customStatesList) return;
+    customStatesList.innerHTML = '';
+    const defaults = new Set(['m','p','f','c','u','r']);
+    const customs = (Array.isArray(states) ? states : []).filter(s => !defaults.has(String(s.code || '').toLowerCase()));
+    for (const s of customs) {
+      const article = document.createElement('article');
+      article.className = 'state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4';
+      const code = String(s.code || '').toLowerCase();
+      article.setAttribute('data-code', code);
+      article.setAttribute('data-type', 'custom');
+      const icon = document.createElement('div');
+      icon.className = `state-icon flex h-10 w-10 items-center justify-center rounded-2xl ${iconBgClass(s.color)} ${iconTextClass(s.color)}`;
+      icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>';
+      const labels = document.createElement('div');
+      labels.className = 'state-labels';
+      const title = document.createElement('p');
+      title.className = 'text-sm font-semibold text-slate-100';
+      title.textContent = s.title || s.code;
+      const desc = document.createElement('p');
+      desc.className = 'text-xs text-slate-400';
+      desc.textContent = s.description || '';
+      labels.appendChild(title);
+      labels.appendChild(desc);
+      article.appendChild(icon);
+      article.appendChild(labels);
+      article.addEventListener('click', (event) => {
+        event.stopPropagation();
+        openOptionsPanel(article, code, true);
+      });
+      customStatesList.appendChild(article);
+    }
+  }
+
+  function getStateByCode(code) {
+    const c = String(code || '').toLowerCase();
+    return _statesCache.find(s => String(s.code || '').toLowerCase() === c) || null;
+  }
+
+  function refreshDefaultTiles() {
+    if (!defaultStatesList) return;
+    const tiles = defaultStatesList.querySelectorAll('article.state-tile[data-code]');
+    tiles.forEach((tile) => {
+      ensureDefaultTileMetadata(tile);
+      const code = tile.getAttribute('data-code');
+      const state = getStateByCode(code);
+      const defaultTitle = tile.dataset.defaultTitle || tile.getAttribute('title') || (code ? code.toUpperCase() : '');
+      const defaultDescription = tile.dataset.defaultDescription || '';
+      const nameText = state?.title || defaultTitle || '';
+      const descText = state?.description || defaultDescription || '';
+      tile.setAttribute('title', nameText);
+      const labels = tile.querySelector('.state-labels');
+      if (labels) {
+        const nameEl = labels.querySelector('p.text-sm');
+        const descEl = labels.querySelector('p.text-xs');
+        if (nameEl) nameEl.textContent = nameText;
+        if (descEl) descEl.textContent = descText;
+      }
+      const iconEl = tile.querySelector('.state-icon');
+      if (iconEl) {
+        const base = tile.dataset.defaultIconBase || 'state-icon flex h-10 w-10 items-center justify-center rounded-2xl';
+        const defaultBg = tile.dataset.defaultIconBg || '';
+        const defaultText = tile.dataset.defaultIconText || '';
+        if (state?.color) {
+          iconEl.className = `${base} ${iconBgClass(state.color)} ${iconTextClass(state.color)}`.trim();
         } else {
-          updateNotesPathLabel(null, true);
+          iconEl.className = `${base} ${defaultBg} ${defaultText}`.trim();
         }
+      }
+    });
+  }
+
+  function attachDefaultTileHandlers() {
+    if (!defaultStatesList) return;
+    const tiles = defaultStatesList.querySelectorAll('article.state-tile[data-code]');
+    tiles.forEach((tile) => {
+      ensureDefaultTileMetadata(tile);
+      if (tile.dataset.optionsBound === 'true') return;
+      tile.dataset.optionsBound = 'true';
+      tile.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const code = tile.getAttribute('data-code');
+        openOptionsPanel(tile, code, false);
       });
+    });
+  }
 
-      function setRailCollapsed(collapsed) {
-        stateRail.dataset.collapsed = collapsed ? 'true' : 'false';
-        localStorage.setItem(storageKey, collapsed ? 'true' : 'false');
-        railToggle.title = collapsed ? 'Expand primary states panel' : 'Collapse primary states panel';
-      }
+  function closeOptionsPanel() {
+    if (_openOptions?.panel && _openOptions.panel.parentElement) {
+      _openOptions.panel.parentElement.removeChild(_openOptions.panel);
+    }
+    _openOptions = null;
+  }
 
-      function updateNotesPathLabel(path, isWarning = false) {
-        if (!notesPathLabel) return;
-        if (!path) {
-          notesPathLabel.textContent = 'No notes file set.';
-          notesPathLabel.classList.toggle('text-amber-400', true);
-          notesPathLabel.removeAttribute('title');
-        } else {
-          const shortened = shortenPath(path);
-          notesPathLabel.textContent = shortened;
-          notesPathLabel.title = path;
-          notesPathLabel.classList.toggle('text-amber-400', Boolean(isWarning));
-          if (!isWarning) {
-            notesPathLabel.classList.remove('text-amber-400');
-          }
-        }
-      }
+  function openOptionsPanel(anchorArticle, code, isCustom) {
+    const normalized = String(code || '').toLowerCase();
+    if (!anchorArticle || !normalized) return;
+    const type = isCustom ? 'custom' : 'default';
+    if (_openOptions?.code === normalized && _openOptions?.type === type) {
+      closeOptionsPanel();
+      return;
+    }
+    closeOptionsPanel();
+    if (!isCustom) {
+      ensureDefaultTileMetadata(anchorArticle);
+    }
+    if (stateRail?.dataset?.collapsed === 'true') {
+      setRailCollapsed(false);
+    }
+    const state = getStateByCode(normalized) || { title: '', description: '', color: 'slate' };
+    const baseTitle = isCustom
+      ? anchorArticle.querySelector('.state-labels p.text-sm')?.textContent || normalized.toUpperCase()
+      : anchorArticle.dataset.defaultTitle || anchorArticle.querySelector('.state-labels p.text-sm')?.textContent || normalized.toUpperCase();
+    const baseDescription = isCustom
+      ? anchorArticle.querySelector('.state-labels p.text-xs')?.textContent || ''
+      : anchorArticle.dataset.defaultDescription || anchorArticle.querySelector('.state-labels p.text-xs')?.textContent || '';
+    const currentColor = String(state.color || 'slate').toLowerCase();
 
-      // Custom states UI
-      async function refreshStatesUI() {
+    const panel = document.createElement('div');
+    panel.className = 'state-options mt-2 rounded-2xl border border-slate-800/70 bg-slate-900/60 p-3 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.8)]';
+    panel.addEventListener('click', (e) => e.stopPropagation());
+
+    const nameRow = document.createElement('div');
+    nameRow.className = 'flex items-center gap-2';
+    const nameLabel = document.createElement('label');
+    nameLabel.className = 'w-24 text-xs text-slate-400';
+    nameLabel.textContent = 'Name';
+    const titleInput = document.createElement('input');
+    titleInput.type = 'text';
+    titleInput.className = 'flex-1 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
+    titleInput.placeholder = 'State name';
+    titleInput.value = state.title || baseTitle || '';
+    nameRow.appendChild(nameLabel);
+    nameRow.appendChild(titleInput);
+
+    const descRow = document.createElement('div');
+    descRow.className = 'mt-3 flex items-center gap-2';
+    const descLabel = document.createElement('label');
+    descLabel.className = 'w-24 text-xs text-slate-400';
+    descLabel.textContent = 'Description';
+    const descInput = document.createElement('input');
+    descInput.type = 'text';
+    descInput.className = 'flex-1 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
+    descInput.placeholder = 'Brief description';
+    descInput.value = state.description || baseDescription || '';
+    descRow.appendChild(descLabel);
+    descRow.appendChild(descInput);
+
+    const colorRow = document.createElement('div');
+    colorRow.className = 'mt-3 flex items-center gap-2';
+    const colorLabel = document.createElement('label');
+    colorLabel.className = 'w-24 text-xs text-slate-400';
+    colorLabel.textContent = 'Color';
+    const colorSelect = document.createElement('select');
+    colorSelect.className = 'rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-1.5 text-sm text-slate-200';
+    ALLOWED_STATE_COLORS.forEach((color) => {
+      const opt = document.createElement('option');
+      opt.value = color;
+      opt.textContent = color;
+      if (color === currentColor) opt.selected = true;
+      colorSelect.appendChild(opt);
+    });
+    colorRow.appendChild(colorLabel);
+    colorRow.appendChild(colorSelect);
+
+    const actionsRow = document.createElement('div');
+    actionsRow.className = 'mt-3 flex items-center justify-between';
+    const status = document.createElement('span');
+    status.className = 'state-options-status text-xs text-slate-500';
+    actionsRow.appendChild(status);
+
+    if (isCustom) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.className = 'inline-flex items-center gap-2 rounded-xl border border-rose-500/50 bg-rose-500/10 px-3 py-1.5 text-xs font-semibold text-rose-300 hover:bg-rose-500/20';
+      deleteBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path stroke-linecap="round" stroke-linejoin="round" d="M6 7h12m-1 0-.867 12.142A2 2 0 0 1 14.138 21H9.862a2 2 0 0 1-1.995-1.858L7 7m5 4v6m-3-6v6m6-6v6M9 7h6m-1-2a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2"/></svg> Delete';
+      deleteBtn.addEventListener('click', async (event) => {
+        event.stopPropagation();
+        if (!confirm('Delete this state? This cannot be undone.')) return;
         try {
-          const states = await window.timelineAPI?.getStates?.();
-          renderCustomStates(Array.isArray(states) ? states : []);
-        } catch (_) {}
-      }
-
-      function renderCustomStates(states) {
-        if (!customStatesList) return;
-        customStatesList.innerHTML = '';
-        const defaults = new Set(['m','p','f','c','u','r']);
-        const customs = states.filter(s => !defaults.has(String(s.code).toLowerCase()));
-        for (const s of customs) {
-          const article = document.createElement('article');
-          article.className = 'state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4';
-          const icon = document.createElement('div');
-          icon.className = `state-icon flex h-10 w-10 items-center justify-center rounded-2xl ${iconBgClass(s.color)} ${iconTextClass(s.color)}`;
-          icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>';
-          const labels = document.createElement('div');
-          labels.className = 'state-labels';
-          const title = document.createElement('p');
-          title.className = 'text-sm font-semibold text-slate-100';
-          title.textContent = s.title || s.code;
-          const desc = document.createElement('p');
-          desc.className = 'text-xs text-slate-400';
-          desc.textContent = s.description || '';
-          labels.appendChild(title);
-          labels.appendChild(desc);
-          article.appendChild(icon);
-          article.appendChild(labels);
-          customStatesList.appendChild(article);
-        }
-      }
-
-      addStateBtn?.addEventListener('click', async () => {
-        try {
-          const res = await window.timelineAPI?.addState?.({ title: 'New State', description: '', color: 'slate' });
+          status.textContent = 'Deleting...';
+          status.classList.remove('text-rose-400', 'text-emerald-400');
+          const res = await window.timelineAPI?.deleteState?.(normalized);
           if (res?.success) {
+            closeOptionsPanel();
             await refreshStatesUI();
-            document.dispatchEvent(new CustomEvent('oyvai-states-updated', { detail: {} }));
           } else {
-            alert('Could not add state.');
-          }
-        } catch (e) {
-          alert('Could not add state.');
-        }
-      });
-
-      refreshStatesUI();
-      window.timelineAPI?.onStatesUpdated?.(() => refreshStatesUI());
-
-      // Analyze all button
-      const analyzeAllBtn = document.getElementById('analyzeAllBtn');
-      const aiStatusLabel = document.getElementById('aiStatusLabel');
-      analyzeAllBtn?.addEventListener('click', async () => {
-        if (!aiStatusLabel) return;
-        aiStatusLabel.textContent = 'Analyzing all days...';
-        aiStatusLabel.classList.remove('text-rose-400', 'text-emerald-400');
-        aiStatusLabel.classList.add('text-slate-400');
-        analyzeAllBtn.disabled = true;
-        try {
-          const resp = await window.timelineAPI?.analyzeAllDays?.(true);
-          if (resp?.success) {
-            aiStatusLabel.textContent = resp.updated > 0 ? `Analyzed ${resp.updated} day(s).` : 'Nothing to update';
-            aiStatusLabel.classList.remove('text-slate-400', 'text-rose-400');
-            aiStatusLabel.classList.add('text-emerald-400');
-          } else if (resp?.reason === 'NO_OPENAI_KEY') {
-            aiStatusLabel.textContent = 'Set OPENAI_API_KEY';
-            aiStatusLabel.classList.add('text-amber-400');
-          } else {
-            aiStatusLabel.textContent = 'Analysis failed';
-            aiStatusLabel.classList.add('text-rose-400');
+            status.textContent = 'Could not delete state';
+            status.classList.add('text-rose-400');
           }
         } catch (_) {
-          aiStatusLabel.textContent = 'Analysis failed';
-          aiStatusLabel.classList.add('text-rose-400');
-        } finally {
-          analyzeAllBtn.disabled = false;
+          status.textContent = 'Could not delete state';
+          status.classList.add('text-rose-400');
         }
       });
+      actionsRow.appendChild(deleteBtn);
     }
+
+    panel.appendChild(nameRow);
+    panel.appendChild(descRow);
+    panel.appendChild(colorRow);
+    panel.appendChild(actionsRow);
+
+    anchorArticle.insertAdjacentElement('afterend', panel);
+    _openOptions = { code: normalized, panel, type };
+
+    const pushUpdate = async (patch) => {
+      if (!patch || typeof patch !== 'object') return;
+      try {
+        status.textContent = 'Saving...';
+        status.classList.remove('text-rose-400', 'text-emerald-400');
+        const res = await window.timelineAPI?.updateState?.({ code: normalized, ...patch });
+        if (res?.success) {
+          closeOptionsPanel();
+          await refreshStatesUI();
+          const reopenedAnchor = isCustom
+            ? customStatesList?.querySelector(`article.state-tile[data-code="${normalized}"]`)
+            : defaultStatesList?.querySelector(`article.state-tile[data-code="${normalized}"]`);
+          if (reopenedAnchor) {
+            openOptionsPanel(reopenedAnchor, normalized, isCustom);
+            const newStatus = _openOptions?.panel?.querySelector('.state-options-status');
+            if (newStatus) {
+              newStatus.textContent = 'Saved';
+              newStatus.classList.remove('text-rose-400');
+              newStatus.classList.add('text-emerald-400');
+              setTimeout(() => {
+                if (newStatus.isConnected) {
+                  newStatus.textContent = '';
+                  newStatus.classList.remove('text-emerald-400');
+                }
+              }, 1600);
+            }
+          }
+        } else {
+          status.textContent = 'Save failed';
+          status.classList.add('text-rose-400');
+        }
+      } catch (_) {
+        status.textContent = 'Save failed';
+        status.classList.add('text-rose-400');
+      }
+    };
+
+    titleInput.addEventListener('change', () => {
+      const value = titleInput.value.trim();
+      if (value === (state.title || baseTitle || '')) return;
+      pushUpdate({ title: value });
+    });
+
+    descInput.addEventListener('change', () => {
+      const value = descInput.value.trim();
+      if (value === (state.description || baseDescription || '')) return;
+      pushUpdate({ description: value });
+    });
+
+    colorSelect.addEventListener('change', () => {
+      const value = String(colorSelect.value || 'slate').toLowerCase();
+      if (!ALLOWED_STATE_COLORS.includes(value)) return;
+      if (value === currentColor) return;
+      pushUpdate({ color: value });
+    });
+  }
+
+  document.addEventListener('click', () => closeOptionsPanel());
+
+  addStateBtn?.addEventListener('click', async () => {
+    try {
+      const res = await window.timelineAPI?.addState?.({ title: 'New State', description: '', color: 'slate' });
+      if (res?.success) {
+        await refreshStatesUI();
+        document.dispatchEvent(new CustomEvent('oyvai-states-updated', { detail: {} }));
+      } else {
+        alert('Could not add state.');
+      }
+    } catch (e) {
+      alert('Could not add state.');
+    }
+  });
+
+  refreshStatesUI();
+  window.timelineAPI?.onStatesUpdated?.(() => refreshStatesUI());
+}
+
+
 
     function shortenPath(path) {
       const maxLength = 42;
@@ -423,7 +675,6 @@
       const end = path.slice(-20);
       return `${start}...${end}`;
     }
-
     function initTimeline() {
       const timelineViewport = document.getElementById('timelineViewport');
       const timelineScroller = document.getElementById('timelineScroller');

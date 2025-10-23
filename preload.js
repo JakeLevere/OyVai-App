@@ -68,6 +68,7 @@ contextBridge.exposeInMainWorld('timelineAPI', {
   getStates: () => ipcRenderer.invoke('states:get').then(r => r?.states || []),
   addState: (state) => ipcRenderer.invoke('states:add', state),
   updateState: (state) => ipcRenderer.invoke('states:update', state),
+  deleteState: (code) => ipcRenderer.invoke('states:delete', { code }),
   onNotesPathChanged: (callback) => {
     if (typeof callback !== 'function') {
       return () => {};
