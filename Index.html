@@ -190,43 +190,46 @@
               </div>
             </article>
           </div>
+        <div class="rail-expanded-only border-t border-slate-800/70">
+          <details id="railExtras" class="group">
+            <summary class="flex w-full cursor-pointer items-center justify-between px-4 py-4 select-none">
+              <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Notes • Custom States • AI</p>
+                <p class="mt-1 text-xs text-slate-400">Optional tools — hidden by default</p>
+              </div>
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <div class="border-t border-slate-800/70 px-4 py-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Notes storage</p>
+              <p class="mt-3 text-sm text-slate-300">Save all daily bullets into one markdown file.</p>
+              <button id="chooseLocationBtn" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-200 transition" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Choose notes file
+              </button>
+              <p id="notesPathLabel" class="notes-path-label mt-3 text-xs text-slate-500 break-all"></p>
+            </div>
+            <div class="border-t border-slate-800/70 px-4 py-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Custom States</p>
+              <p class="mt-3 text-sm text-slate-300">Add your own states for analysis.</p>
+              <button id="addStateBtn" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-purple-400/70 hover:bg-purple-500/10 hover:text-purple-200 transition" type="button">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+                Add state
+              </button>
+              <div id="customStatesList" class="mt-4 space-y-3"></div>
+            </div>
+            <div class="border-t border-slate-800/70 px-4 py-5">
+              <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">AI Analysis</p>
+              <p class="mt-3 text-sm text-slate-300">Categorize bullets by state and color-code.</p>
+              <div class="mt-4 flex items-center gap-2">
+                <button id="analyzeAllBtn" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-cyan-400/70 hover:bg-cyan-500/10 hover:text-cyan-200 transition" type="button">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3v18"/></svg>
+                  Analyze all days
+                </button>
+              </div>
+              <p id="aiStatusLabel" class="mt-3 text-xs text-slate-500"></p>
+            </div>
+          </details>
         </div>
-        <div class="rail-expanded-only border-t border-slate-800/70 px-4 py-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Notes storage</p>
-          <p class="mt-3 text-sm text-slate-300">Save all daily bullets into one markdown file.</p>
-          <button id="chooseLocationBtn" class="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-200 transition" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            Choose notes file
-          </button>
-          <p id="notesPathLabel" class="notes-path-label mt-3 text-xs text-slate-500 break-all"></p>
-        </div>
-        <div class="rail-expanded-only border-t border-slate-800/70 px-4 py-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">Custom States</p>
-          <p class="mt-3 text-sm text-slate-300">Add your own states for analysis.</p>
-          <button id="addStateBtn" class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-purple-400/70 hover:bg-purple-500/10 hover:text-purple-200 transition" type="button">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
-            </svg>
-            Add state
-          </button>
-          <div id="customStatesList" class="mt-4 space-y-3"></div>
-        </div>
-        <div class="rail-expanded-only border-t border-slate-800/70 px-4 py-5">
-          <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-500">AI Analysis</p>
-          <p class="mt-3 text-sm text-slate-300">Categorize bullets by state and color-code.</p>
-          <div class="mt-4 flex items-center gap-2">
-            <button id="analyzeAllBtn" class="inline-flex flex-1 items-center justify-center gap-2 rounded-2xl border border-slate-800/80 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 hover:border-cyan-400/70 hover:bg-cyan-500/10 hover:text-cyan-200 transition" type="button">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M3 12h18M12 3v18"/>
-              </svg>
-              Analyze all days
-            </button>
-          </div>
-          <p id="aiStatusLabel" class="mt-3 text-xs text-slate-500"></p>
-        </div>
-      </div>
     </aside>
 
     <!-- Timeline -->
