@@ -29,8 +29,7 @@
       display: none;
     }
     .state-rail[data-collapsed="true"] .state-tile {
-      padding: 0.75rem 0;
-      justify-content: center;
+      padding: 0;
     }
     .state-rail[data-collapsed="true"] .state-icon {
       margin: 0;
@@ -42,12 +41,117 @@
       display: none;
     }
     .state-tile {
-      transition: border-color 180ms ease, background-color 180ms ease, transform 180ms ease;
+      overflow: hidden;
+      transition: border-color 180ms ease, background-color 180ms ease;
     }
     .state-tile:hover {
-      transform: translateX(4px);
-      background-color: rgba(148, 163, 184, 0.08);
       border-color: rgba(148, 163, 184, 0.18);
+    }
+
+    .state-nav,
+    .state-options-trigger,
+    #noteCardsBtn {
+      font: inherit;
+      color: inherit;
+      background: none;
+    }
+    .state-nav {
+      flex: 1 1 auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem 1.25rem;
+      border: none;
+      border-radius: 0;
+      cursor: pointer;
+      text-align: left;
+      background-color: transparent;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+    .state-nav:hover {
+      background-color: rgba(148, 163, 184, 0.08);
+    }
+    .state-nav:focus-visible,
+    .state-options-trigger:focus-visible,
+    #noteCardsBtn:focus-visible {
+      outline: 2px solid rgba(148, 163, 184, 0.65);
+      outline-offset: 2px;
+      border-radius: 1.5rem;
+    }
+    .state-options-trigger {
+      flex: 0 0 calc(100% / 8);
+      min-width: 2.75rem;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      border-left: 1px solid rgba(30, 41, 59, 0.7);
+      background-color: rgba(15, 23, 42, 0.4);
+      color: rgb(148, 163, 184);
+      cursor: pointer;
+      transition: background-color 160ms ease, color 160ms ease;
+    }
+    .state-options-trigger:hover {
+      background-color: rgba(148, 163, 184, 0.12);
+      color: rgb(226, 232, 240);
+    }
+    .state-options-trigger svg {
+      transition: transform 160ms ease;
+    }
+    .state-options-trigger[aria-expanded="true"] svg {
+      transform: rotate(180deg);
+    }
+    .state-tile[data-selected="true"] {
+      border-color: rgba(148, 163, 184, 0.32);
+      background-color: rgba(148, 163, 184, 0.12);
+    }
+    .state-rail[data-collapsed="true"] .state-nav {
+      padding: 0.75rem 0.5rem;
+      justify-content: center;
+    }
+    .state-rail[data-collapsed="true"] .state-options-trigger {
+      display: none;
+    }
+    .state-rail[data-collapsed="true"] #noteCardsBtn {
+      justify-content: center;
+      width: 2.75rem;
+      padding-inline: 0;
+    }
+    .state-rail[data-collapsed="true"] #noteCardsBtn .note-cards-label {
+      display: none;
+    }
+    #noteCardsBtn {
+      border: 1px solid rgba(51, 65, 85, 0.7);
+      border-radius: 1.5rem;
+      padding: 0.65rem 1rem;
+      display: inline-flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      background-color: rgba(15, 23, 42, 0.6);
+      color: rgb(226, 232, 240);
+      cursor: pointer;
+      transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+    }
+    #noteCardsBtn:hover {
+      border-color: rgba(16, 185, 129, 0.55);
+      background-color: rgba(16, 185, 129, 0.12);
+      color: rgb(209, 250, 229);
+    }
+    #noteCardsBtn[data-active="true"] {
+      border-color: rgba(16, 185, 129, 0.65);
+      background-color: rgba(16, 185, 129, 0.18);
+      color: rgb(209, 250, 229);
+    }
+    .state-hero-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      height: 4rem;
+      width: 4rem;
+      border-radius: 1.5rem;
+      transition: background-color 200ms ease, color 200ms ease;
     }
     .rail-toggle {
       transition: transform 220ms ease, background-color 180ms ease, border-color 180ms ease;
@@ -109,10 +213,13 @@
     <aside id="stateRail" class="state-rail shrink-0 border-r border-slate-800 bg-slate-900" data-collapsed="true">
       <div class="flex h-full flex-col">
         <div class="flex items-start justify-between gap-3 px-4 pt-6 pb-4">
-          <div class="rail-expanded-only">
-            <p class="text-xs font-semibold uppercase tracking-[0.45em] text-slate-500">Primary States</p>
-            <h1 class="mt-3 text-xl font-semibold text-slate-100">Origin Stack</h1>
-            <p class="mt-2 text-sm text-slate-400">Pins your states on the left so cause stays obvious.</p>
+          <div class="rail-expanded-only flex-1">
+            <button id="noteCardsBtn" type="button" class="inline-flex w-full items-center justify-center gap-2 rounded-full border border-slate-800/70 bg-slate-900/60 px-4 py-2.5 text-sm font-semibold text-slate-200 transition" data-active="true">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+              </svg>
+              <span class="note-cards-label">Note Cards</span>
+            </button>
           </div>
           <button id="railToggle" class="rail-toggle mt-1 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-800/70 bg-slate-900/60 text-slate-400 transition" type="button" title="Expand primary states panel">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
@@ -123,71 +230,113 @@
         </div>
         <div class="flex-1 overflow-y-auto px-4 pb-6">
           <div id="defaultStatesList" class="space-y-3">
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Mental" data-code="m" data-type="default">
-              <div class="state-icon mt-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 9.75c.75-.75 2.25-1.125 3.75-.375s2.25 2.625 1.5 3.375m-2.25 1.5c1.5 0 2.25.75 3 .75s1.5-.75 1.5-.75M4.5 12A7.5 7.5 0 0 1 12 4.5 7.5 7.5 0 0 1 19.5 12 7.5 7.5 0 0 1 12 19.5 7.5 7.5 0 0 1 4.5 12Z"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Mental" data-code="m" data-type="default">
+              <button class="state-nav" type="button" aria-label="Mental state view" data-state-code="m">
+                <div class="state-icon mt-0 flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-500/15 text-emerald-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 9.75c.75-.75 2.25-1.125 3.75-.375s2.25 2.625 1.5 3.375m-2.25 1.5c1.5 0 2.25.75 3 .75s1.5-.75 1.5-.75M4.5 12A7.5 7.5 0 0 1 12 4.5 7.5 7.5 0 0 1 19.5 12 7.5 7.5 0 0 1 12 19.5 7.5 7.5 0 0 1 4.5 12Z"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Mental</p>
+                  <p class="text-xs text-slate-400">Mindset and mood</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Mental state options" aria-expanded="false" data-state-code="m">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Mental</p>
-                <p class="text-xs text-slate-400">Mindset and mood</p>
-              </div>
+              </button>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Physical" data-code="p" data-type="default">
-              <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 9.75 9 7.5m6 0 3 2.25m-9 9 3-2.25m0 0 3 2.25m-3-2.25V7.5"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Physical" data-code="p" data-type="default">
+              <button class="state-nav" type="button" aria-label="Physical state view" data-state-code="p">
+                <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-sky-500/15 text-sky-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 9.75 9 7.5m6 0 3 2.25m-9 9 3-2.25m0 0 3 2.25m-3-2.25V7.5"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Physical</p>
+                  <p class="text-xs text-slate-400">Energy and body state</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Physical state options" aria-expanded="false" data-state-code="p">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Physical</p>
-                <p class="text-xs text-slate-400">Energy and body state</p>
-              </div>
+              </button>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Financial" data-code="f" data-type="default">
-              <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 15.75V9.75A1.5 1.5 0 0 1 7.5 8.25h9A1.5 1.5 0 0 1 18 9.75v6m-12 0h12m-12 0v1.5A1.5 1.5 0 0 0 7.5 18.75h9a1.5 1.5 0 0 0 1.5-1.5v-1.5m-10.5-6h6"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Financial" data-code="f" data-type="default">
+              <button class="state-nav" type="button" aria-label="Financial state view" data-state-code="f">
+                <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-amber-500/15 text-amber-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 15.75V9.75A1.5 1.5 0 0 1 7.5 8.25h9A1.5 1.5 0 0 1 18 9.75v6m-12 0h12m-12 0v1.5A1.5 1.5 0 0 0 7.5 18.75h9a1.5 1.5 0 0 0 1.5-1.5v-1.5m-10.5-6h6"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Financial</p>
+                  <p class="text-xs text-slate-400">Cash flow and runway</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Financial state options" aria-expanded="false" data-state-code="f">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Financial</p>
-                <p class="text-xs text-slate-400">Cash flow and runway</p>
-              </div>
+              </button>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Career" data-code="c" data-type="default">
-              <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15.75 12 9.75l4.5 6m-9 0h9"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Career" data-code="c" data-type="default">
+              <button class="state-nav" type="button" aria-label="Career state view" data-state-code="c">
+                <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-purple-500/15 text-purple-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 15.75 12 9.75l4.5 6m-9 0h9"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Career</p>
+                  <p class="text-xs text-slate-400">Work and momentum</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Career state options" aria-expanded="false" data-state-code="c">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Career</p>
-                <p class="text-xs text-slate-400">Work and momentum</p>
-              </div>
+              </button>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Purpose" data-code="u" data-type="default">
-              <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="m12 3 2.31 5.28L20 9.21l-4 4.04.94 5.62L12 16.9l-4.94 1.97L8 13.25 4 9.21l5.69-.93z"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Purpose" data-code="u" data-type="default">
+              <button class="state-nav" type="button" aria-label="Purpose state view" data-state-code="u">
+                <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-rose-500/15 text-rose-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m12 3 2.31 5.28L20 9.21l-4 4.04.94 5.62L12 16.9l-4.94 1.97L8 13.25 4 9.21l5.69-.93z"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Purpose</p>
+                  <p class="text-xs text-slate-400">Meaning and direction</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Purpose state options" aria-expanded="false" data-state-code="u">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Purpose</p>
-                <p class="text-xs text-slate-400">Meaning and direction</p>
-              </div>
+              </button>
             </article>
-            <article class="state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4" title="Record" data-code="r" data-type="default">
-              <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75A3.75 3.75 0 0 0 15.75 12V7.5a3.75 3.75 0 1 0-7.5 0V12A3.75 3.75 0 0 0 12 15.75Zm0 0v3m4.5-3a4.5 4.5 0 0 1-9 0"/>
+            <article class="state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50" title="Record" data-code="r" data-type="default">
+              <button class="state-nav" type="button" aria-label="Record state view" data-state-code="r">
+                <div class="state-icon flex h-10 w-10 items-center justify-center rounded-2xl bg-cyan-500/15 text-cyan-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 15.75A3.75 3.75 0 0 0 15.75 12V7.5a3.75 3.75 0 1 0-7.5 0V12A3.75 3.75 0 0 0 12 15.75Zm0 0v3m4.5-3a4.5 4.5 0 0 1-9 0"/>
+                  </svg>
+                </div>
+                <div class="state-labels">
+                  <p class="text-sm font-semibold text-slate-100">Record</p>
+                  <p class="text-xs text-slate-400">Capture raw signals</p>
+                </div>
+              </button>
+              <button class="state-options-trigger" type="button" aria-label="Record state options" aria-expanded="false" data-state-code="r">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/>
                 </svg>
-              </div>
-              <div class="state-labels">
-                <p class="text-sm font-semibold text-slate-100">Record</p>
-                <p class="text-xs text-slate-400">Capture raw signals</p>
-              </div>
+              </button>
             </article>
           </div>
         <div class="rail-expanded-only border-t border-slate-800/70">
@@ -232,35 +381,169 @@
         </div>
     </aside>
 
-    <!-- Timeline -->
-    <main id="timelineViewport" class="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
-      <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950 via-slate-950/80 to-transparent"></div>
-      <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
-      <div class="flex-1">
-        <div id="timelineScroller" class="timeline-scroller h-full overflow-x-auto overflow-y-hidden">
-          <div id="timeline" class="relative flex h-full items-stretch gap-6 px-12 py-16">
-            <!-- Day columns injected via script -->
+    <!-- Main Content -->
+    <main id="mainContent" class="relative flex flex-1 flex-col overflow-hidden bg-gradient-to-br from-slate-950 via-slate-950 to-slate-900">
+      <!-- Timeline View -->
+      <div id="timelineViewport" class="relative flex flex-1 flex-col overflow-hidden" data-view="notes">
+        <div class="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-slate-950 via-slate-950/80 to-transparent"></div>
+        <div class="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent"></div>
+        <div class="flex-1">
+          <div id="timelineScroller" class="timeline-scroller h-full overflow-x-auto overflow-y-hidden">
+            <div id="timeline" class="relative flex h-full items-stretch gap-6 px-12 py-16">
+              <!-- Day columns injected via script -->
+            </div>
+          </div>
+          <div id="timelineScrollBar" class="border-t border-slate-800/70">
+            <div id="timelineScrollTrack" class="h-4 overflow-x-auto overflow-y-hidden">
+              <div id="timelineScrollContent" class="h-1"></div>
+            </div>
           </div>
         </div>
-        <div id="timelineScrollBar" class="border-t border-slate-800/70">
-          <div id="timelineScrollTrack" class="h-4 overflow-x-auto overflow-y-hidden">
-            <div id="timelineScrollContent" class="h-1"></div>
-          </div>
+        <div id="todayMarker" class="pointer-events-none absolute top-14 bottom-14 flex flex-col items-center opacity-0 transition-opacity duration-200">
+          <span id="todayMarkerLabel" class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300 backdrop-blur-sm">Today</span>
+          <div class="mt-3 h-full w-px bg-gradient-to-b from-emerald-300 via-emerald-300 to-transparent"></div>
         </div>
       </div>
-      <div id="todayMarker" class="pointer-events-none absolute top-14 bottom-14 flex flex-col items-center opacity-0 transition-opacity duration-200">
-        <span id="todayMarkerLabel" class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-300 backdrop-blur-sm">Today</span>
-        <div class="mt-3 h-full w-px bg-gradient-to-b from-emerald-300 via-emerald-300 to-transparent"></div>
+
+      <!-- State View -->
+      <div id="stateView" class="hidden flex-1 flex-col" data-view="state">
+        <div class="flex-1 flex items-center justify-center p-12">
+          <div class="text-center max-w-2xl">
+            <div id="stateHeroIcon" class="state-hero-icon mx-auto mb-6">
+              <!-- Icon injected via script -->
+            </div>
+            <h1 id="stateTitle" class="text-4xl font-bold text-slate-100 mb-4">
+              <!-- Title injected via script -->
+            </h1>
+            <p id="stateDescription" class="text-lg text-slate-400 mb-8">
+              <!-- Description injected via script -->
+            </p>
+            <div class="rounded-2xl border border-slate-800/70 bg-slate-900/60 p-8">
+              <p class="text-sm text-slate-500">State-specific content will appear here in future updates.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </main>
   </div>
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
+      initViewManager();
       initRail();
       initTimeline();
     });
 
+
+function initViewManager() {
+  let currentView = 'notes';
+  let selectedStateCode = null;
+  
+  const timelineViewport = document.getElementById('timelineViewport');
+  const stateView = document.getElementById('stateView');
+  const noteCardsBtn = document.getElementById('noteCardsBtn');
+  const stateTitle = document.getElementById('stateTitle');
+  const stateDescription = document.getElementById('stateDescription');
+  const stateHeroIcon = document.getElementById('stateHeroIcon');
+  
+  function setView(view, stateCode = null) {
+    if (view === 'notes') {
+      currentView = 'notes';
+      selectedStateCode = null;
+      timelineViewport.classList.remove('hidden');
+      stateView.classList.add('hidden');
+      noteCardsBtn?.setAttribute('data-active', 'true');
+      
+      // Update aria-current for all state buttons
+      document.querySelectorAll('.state-nav').forEach(btn => {
+        btn.removeAttribute('aria-current');
+      });
+      
+      // Update selected state tiles
+      document.querySelectorAll('.state-tile').forEach(tile => {
+        tile.setAttribute('data-selected', 'false');
+      });
+      
+      // Scroll to today's card
+      const todayColumn = document.querySelector('.today-column');
+      const timelineScroller = document.getElementById('timelineScroller');
+      if (todayColumn && timelineScroller) {
+        requestAnimationFrame(() => {
+          scrollColumnIntoView(todayColumn, timelineScroller);
+        });
+      }
+      
+      // Update document title
+      document.title = 'OyVai - Primary States Timeline';
+      
+    } else if (view === 'state' && stateCode) {
+      currentView = 'state';
+      selectedStateCode = stateCode;
+      timelineViewport.classList.add('hidden');
+      stateView.classList.remove('hidden');
+      noteCardsBtn?.setAttribute('data-active', 'false');
+      
+      // Update aria-current for state buttons
+      document.querySelectorAll('.state-nav').forEach(btn => {
+        if (btn.dataset.stateCode === stateCode) {
+          btn.setAttribute('aria-current', 'page');
+        } else {
+          btn.removeAttribute('aria-current');
+        }
+      });
+      
+      // Update selected state tiles
+      document.querySelectorAll('.state-tile').forEach(tile => {
+        tile.setAttribute('data-selected', tile.dataset.code === stateCode ? 'true' : 'false');
+      });
+      
+      // Load state info
+      loadStateInfo(stateCode);
+    }
+  }
+  
+  async function loadStateInfo(code) {
+    try {
+      // Get state information
+      const states = await window.timelineAPI?.getStates?.() || [];
+      const state = states.find(s => s.code === code);
+      
+      if (state) {
+        // Update title and description
+        stateTitle.textContent = state.title || code.toUpperCase();
+        stateDescription.textContent = state.description || '';
+        
+        // Update document title
+        document.title = `OyVai - ${state.title || code.toUpperCase()}`;
+        
+        // Update hero icon with matching color
+        const iconBg = iconBgClass(state.color);
+        const iconText = iconTextClass(state.color);
+        
+        // Find the icon from the state tile
+        const stateTile = document.querySelector(`.state-tile[data-code="${code}"]`);
+        const iconSvg = stateTile?.querySelector('.state-icon svg')?.outerHTML || '';
+        
+        stateHeroIcon.className = `state-hero-icon mx-auto mb-6 ${iconBg} ${iconText}`;
+        stateHeroIcon.innerHTML = iconSvg;
+      }
+    } catch (error) {
+      console.error('Failed to load state info:', error);
+    }
+  }
+  
+  // Note Cards button handler
+  noteCardsBtn?.addEventListener('click', () => {
+    setView('notes');
+  });
+  
+  // Export setView for use in other functions
+  window.appViewManager = {
+    setView,
+    getCurrentView: () => currentView,
+    getSelectedState: () => selectedStateCode
+  };
+}
 
 function initRail() {
   const stateRail = document.getElementById('stateRail');
@@ -393,13 +676,23 @@ function initRail() {
     const customs = (Array.isArray(states) ? states : []).filter(s => !defaults.has(String(s.code || '').toLowerCase()));
     for (const s of customs) {
       const article = document.createElement('article');
-      article.className = 'state-tile group flex items-center gap-4 rounded-3xl border border-slate-800/70 bg-slate-900/50 px-4 py-4';
+      article.className = 'state-tile group flex rounded-3xl border border-slate-800/70 bg-slate-900/50';
       const code = String(s.code || '').toLowerCase();
       article.setAttribute('data-code', code);
       article.setAttribute('data-type', 'custom');
+      article.setAttribute('title', s.title || s.code);
+      
+      // Main navigation button
+      const navBtn = document.createElement('button');
+      navBtn.className = 'state-nav';
+      navBtn.type = 'button';
+      navBtn.setAttribute('aria-label', `${s.title || s.code} state view`);
+      navBtn.setAttribute('data-state-code', code);
+      
       const icon = document.createElement('div');
       icon.className = `state-icon flex h-10 w-10 items-center justify-center rounded-2xl ${iconBgClass(s.color)} ${iconTextClass(s.color)}`;
       icon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6"/></svg>';
+      
       const labels = document.createElement('div');
       labels.className = 'state-labels';
       const title = document.createElement('p');
@@ -410,12 +703,37 @@ function initRail() {
       desc.textContent = s.description || '';
       labels.appendChild(title);
       labels.appendChild(desc);
-      article.appendChild(icon);
-      article.appendChild(labels);
-      article.addEventListener('click', (event) => {
+      
+      navBtn.appendChild(icon);
+      navBtn.appendChild(labels);
+      
+      // Options trigger button
+      const optionsBtn = document.createElement('button');
+      optionsBtn.className = 'state-options-trigger';
+      optionsBtn.type = 'button';
+      optionsBtn.setAttribute('aria-label', `${s.title || s.code} state options`);
+      optionsBtn.setAttribute('aria-expanded', 'false');
+      optionsBtn.setAttribute('data-state-code', code);
+      optionsBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5"/></svg>';
+      
+      // Event handlers
+      navBtn.addEventListener('click', (event) => {
         event.stopPropagation();
-        openOptionsPanel(article, code, true);
+        window.appViewManager?.setView('state', code);
       });
+      
+      optionsBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
+        const isExpanded = optionsBtn.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+          closeOptionsPanel();
+        } else {
+          openOptionsPanel(article, code, true);
+        }
+      });
+      
+      article.appendChild(navBtn);
+      article.appendChild(optionsBtn);
       customStatesList.appendChild(article);
     }
   }
@@ -465,17 +783,44 @@ function initRail() {
       ensureDefaultTileMetadata(tile);
       if (tile.dataset.optionsBound === 'true') return;
       tile.dataset.optionsBound = 'true';
-      tile.addEventListener('click', (event) => {
-        event.stopPropagation();
-        const code = tile.getAttribute('data-code');
-        openOptionsPanel(tile, code, false);
-      });
+      
+      // Main navigation button
+      const navBtn = tile.querySelector('.state-nav');
+      const optionsBtn = tile.querySelector('.state-options-trigger');
+      const code = tile.getAttribute('data-code');
+      
+      if (navBtn) {
+        navBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          window.appViewManager?.setView('state', code);
+        });
+      }
+      
+      if (optionsBtn) {
+        optionsBtn.addEventListener('click', (event) => {
+          event.stopPropagation();
+          const isExpanded = optionsBtn.getAttribute('aria-expanded') === 'true';
+          if (isExpanded) {
+            closeOptionsPanel();
+          } else {
+            openOptionsPanel(tile, code, false);
+          }
+        });
+      }
     });
   }
 
   function closeOptionsPanel() {
     if (_openOptions?.panel && _openOptions.panel.parentElement) {
       _openOptions.panel.parentElement.removeChild(_openOptions.panel);
+    }
+    // Update aria-expanded state and remove aria-controls
+    if (_openOptions?.code) {
+      const triggers = document.querySelectorAll(`.state-options-trigger[data-state-code="${_openOptions.code}"]`);
+      triggers.forEach(trigger => {
+        trigger.setAttribute('aria-expanded', 'false');
+        trigger.removeAttribute('aria-controls');
+      });
     }
     _openOptions = null;
   }
@@ -506,6 +851,7 @@ function initRail() {
 
     const panel = document.createElement('div');
     panel.className = 'state-options mt-2 rounded-2xl border border-slate-800/70 bg-slate-900/60 p-3 shadow-[0_20px_40px_-32px_rgba(15,23,42,0.8)] overflow-hidden';
+    panel.id = `state-options-panel-${normalized}`;
     panel.addEventListener('click', (e) => e.stopPropagation());
 
     const nameRow = document.createElement('div');
@@ -591,6 +937,13 @@ function initRail() {
 
     anchorArticle.insertAdjacentElement('afterend', panel);
     _openOptions = { code: normalized, panel, type };
+    
+    // Update aria-expanded state and aria-controls
+    const triggers = document.querySelectorAll(`.state-options-trigger[data-state-code="${normalized}"]`);
+    triggers.forEach(trigger => {
+      trigger.setAttribute('aria-expanded', 'true');
+      trigger.setAttribute('aria-controls', panel.id);
+    });
 
     const pushUpdate = async (patch) => {
       if (!patch || typeof patch !== 'object') return;
