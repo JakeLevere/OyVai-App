@@ -218,6 +218,149 @@ function registerIpcHandlers() {
     return { success: changed };
   });
 
+  // Chat endpoints
+  ipcMain.handle('chat:send-message', async (_event, { message, state } = {}) => {
+    if (!message || typeof message !== 'string') {
+      throw new Error('Invalid message.');
+    }
+    
+    const apiKey = getOpenAIKey();
+    if (!apiKey) {
+      return { success: false, reason: 'NO_OPENAI_KEY' };
+    }
+    
+    try {
+      // Get context for the current state
+      const context = await getChatContext(state);
+      const systemPrompt = buildChatSystemPrompt(state, context);
+      
+      const payload = {
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: message }
+        ],
+        temperature: 0.7,
+        max_tokens: 1000
+      };
+      
+      const body = JSON.stringify(payload);
+      const response = await fetchOpenAI('/v1/chat/completions', apiKey, body);
+      
+      if (!response) {
+        return { success: false, reason: 'API_ERROR' };
+      }
+      
+      const data = JSON.parse(response);
+      const content = data.choices?.[0]?.message?.content?.trim();
+      
+      if (!content) {
+        return { success: false, reason: 'NO_CONTENT' };
+      }
+      
+      return { success: true, content };
+    } catch (error) {
+      console.error('Chat error:', error);
+      return { success: false, reason: 'ERROR', error: error.message };
+    }
+  });
+  
+  ipcMain.handle('chat:update-context', async (_event, state) => {
+    if (!state || typeof state !== 'string') {
+      throw new Error('Invalid state.');
+    }
+    
+    try {
+      const settings = loadSettings();
+      if (!settings.notesFilePath) {
+        return { success: false, reason: 'NO_NOTES_PATH' };
+      }
+      
+      // Create or update context file
+      const contextDir = path.join(app.getPath('userData'), 'contexts');
+      await fs.promises.mkdir(contextDir, { recursive: true });
+      
+      const contextFile = path.join(contextDir, `${state}-context.md`);
+      
+      // Extract relevant bullets from notes
+      await ensureNotesFile(settings.notesFilePath);
+      const markdown = await fs.promises.readFile(settings.notesFilePath, 'utf8');
+      const { notes } = parseNotes(markdown);
+      
+      let contextContent = '';
+      
+      if (state === 'notes') {
+        // For general notes view, include all bullets
+        contextContent = `# General Daily Notes Context\n\n`;
+        contextContent += `This context includes all daily note entries.\n\n`;
+        
+        const entries = Object.entries(notes).sort(([a], [b]) => {
+          const aTime = Date.parse(a);
+          const bTime = Date.parse(b);
+          if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+            return bTime - aTime; // Most recent first
+          }
+          return b.localeCompare(a);
+        });
+        
+        for (const [dateKey, content] of entries) {
+          if (content.trim()) {
+            contextContent += `## ${dateKey}\n\n${content}\n\n`;
+          }
+        }
+      } else {
+        // For specific state, filter bullets by state code
+        const states = await loadAllStates();
+        const stateInfo = states.find(s => s.code === state);
+        
+        if (!stateInfo) {
+          return { success: false, reason: 'INVALID_STATE' };
+        }
+        
+        contextContent = `# ${stateInfo.title} Context\n\n`;
+        contextContent += `This context includes only ${stateInfo.title.toLowerCase()}-related entries.\n`;
+        contextContent += `Description: ${stateInfo.description}\n\n`;
+        
+        const entries = Object.entries(notes).sort(([a], [b]) => {
+          const aTime = Date.parse(a);
+          const bTime = Date.parse(b);
+          if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+            return bTime - aTime; // Most recent first
+          }
+          return b.localeCompare(a);
+        });
+        
+        for (const [dateKey, content] of entries) {
+          if (!content.trim()) continue;
+          
+          // Extract bullets with this state's marker
+          const lines = content.split('\n');
+          const stateBullets = lines.filter(line => {
+            const match = line.match(/\{([a-z0-9_-]{1,8})\}\s*$/i);
+            return match && match[1].toLowerCase() === state;
+          });
+          
+          if (stateBullets.length > 0) {
+            contextContent += `## ${dateKey}\n\n`;
+            contextContent += stateBullets.map(bullet => {
+              // Remove the state marker for cleaner context
+              return bullet.replace(/\s*\{[a-z0-9_-]{1,8}\}\s*$/i, '');
+            }).join('\n');
+            contextContent += '\n\n';
+          }
+        }
+      }
+      
+      // Write context file
+      await fs.promises.writeFile(contextFile, contextContent, 'utf8');
+      
+      return { success: true, contextFile };
+    } catch (error) {
+      console.error('Context update error:', error);
+      return { success: false, reason: 'ERROR', error: error.message };
+    }
+  });
+  
   // Analysis endpoints
   ipcMain.handle('notes:analyze-day', async (_event, { dateKey, force } = {}) => {
     if (!dateKey || typeof dateKey !== 'string') throw new Error('Invalid date key.');
@@ -564,6 +707,59 @@ function broadcastNotesUpdated(dateKey) {
   for (const window of BrowserWindow.getAllWindows()) {
     window.webContents.send('notes:updated', { dateKey });
   }
+}
+
+// Chat helper functions
+async function getChatContext(state) {
+  try {
+    const contextDir = path.join(app.getPath('userData'), 'contexts');
+    const contextFile = path.join(contextDir, `${state}-context.md`);
+    
+    // Check if context file exists
+    try {
+      await fs.promises.access(contextFile);
+      const content = await fs.promises.readFile(contextFile, 'utf8');
+      return content;
+    } catch (error) {
+      // Context file doesn't exist
+      return null;
+    }
+  } catch (error) {
+    console.error('Error reading chat context:', error);
+    return null;
+  }
+}
+
+function buildChatSystemPrompt(state, context) {
+  let basePrompt = '';
+  
+  if (state === 'notes') {
+    basePrompt = `You are a helpful AI assistant for the OyVai daily notes application. You help users understand and analyze their daily notes and activities. You have access to their daily note entries to provide personalized insights and assistance.`;
+  } else {
+    // Get state info
+    const states = loadAllStates();
+    const stateInfo = states.find(s => s.code === state);
+    
+    if (stateInfo) {
+      basePrompt = `You are a specialized AI assistant focused on ${stateInfo.title.toLowerCase()} activities in the OyVai daily notes application. Your role is to help users understand and improve their ${stateInfo.title.toLowerCase()} state. ${stateInfo.description}`;
+    } else {
+      basePrompt = `You are a helpful AI assistant for the OyVai daily notes application, focused on the ${state} state.`;
+    }
+  }
+  
+  if (context) {
+    basePrompt += `\n\nHere is the relevant context from the user's notes:\n\n${context}\n\nUse this context to provide personalized and relevant responses. Reference specific entries when helpful.`;
+  } else {
+    basePrompt += `\n\nNote: No context data is currently available. Suggest updating the context to get personalized insights based on the user's notes.`;
+  }
+  
+  basePrompt += `\n\nGuidelines:
+- Be concise and helpful
+- Reference specific dates or entries when relevant
+- Provide actionable insights when possible
+- If asked about data you don't have, suggest updating the context`;
+  
+  return basePrompt;
 }
 
 if (process.platform === 'win32') {

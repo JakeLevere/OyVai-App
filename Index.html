@@ -202,6 +202,90 @@
       box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.15);
       background: rgba(15, 23, 42, 0.75);
     }
+    
+    /* Chat Rail Styles */
+    .chat-rail {
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 30;
+      width: 24rem;
+      transition: width 220ms ease;
+    }
+    .chat-rail[data-collapsed="true"] {
+      width: 3.5rem;
+    }
+    .chat-rail[data-collapsed="true"] .chat-rail-expanded-only {
+      display: none;
+    }
+    .chat-rail-toggle {
+      transition: transform 220ms ease, background-color 180ms ease, border-color 180ms ease;
+    }
+    .chat-rail-toggle:hover {
+      background-color: rgba(148, 163, 184, 0.1);
+      border-color: rgba(148, 163, 184, 0.25);
+    }
+    .chat-rail[data-collapsed="true"] .chat-rail-toggle svg {
+      transform: rotate(180deg);
+    }
+    
+    /* Chat Message Styles */
+    .chat-message {
+      display: flex;
+      gap: 0.75rem;
+      animation: fadeIn 0.3s ease-out;
+    }
+    .chat-message-user {
+      flex-direction: row-reverse;
+    }
+    .chat-message-content {
+      flex: 1;
+      padding: 0.75rem 1rem;
+      border-radius: 1rem;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    .chat-message-user .chat-message-content {
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: rgb(209, 250, 229);
+    }
+    .chat-message-assistant .chat-message-content {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(51, 65, 85, 0.5);
+      color: rgb(226, 232, 240);
+    }
+    .chat-message-avatar {
+      flex-shrink: 0;
+      width: 2rem;
+      height: 2rem;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .chat-message-user .chat-message-avatar {
+      background: rgba(16, 185, 129, 0.2);
+      color: rgb(52, 211, 153);
+    }
+    .chat-message-assistant .chat-message-avatar {
+      background: rgba(139, 92, 246, 0.2);
+      color: rgb(167, 139, 250);
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(0.5rem);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -425,6 +509,67 @@
         </div>
       </div>
     </main>
+    
+    <!-- AI Chat Section (Right Rail) -->
+    <aside id="chatRail" class="chat-rail shrink-0 border-l border-slate-800 bg-slate-900" data-collapsed="true">
+      <div class="flex h-full flex-col">
+        <!-- Chat Header -->
+        <div class="flex items-center justify-between border-b border-slate-800/70 px-4 py-3">
+          <div class="chat-rail-expanded-only flex-1">
+            <h3 id="chatTitle" class="text-sm font-semibold text-slate-100">AI Assistant</h3>
+            <p id="chatDescription" class="text-xs text-slate-400 mt-0.5">General assistant for your daily notes</p>
+          </div>
+          <button id="chatRailToggle" class="chat-rail-toggle ml-3 inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-800/70 bg-slate-900/60 text-slate-400 transition" type="button" title="Expand AI chat panel">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m15 6-6 6 6 6"/>
+            </svg>
+            <span class="sr-only">Toggle chat</span>
+          </button>
+        </div>
+        
+        <!-- Chat Messages Area -->
+        <div id="chatMessages" class="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+          <div class="text-center py-8">
+            <p class="text-sm text-slate-500">Start a conversation with your AI assistant</p>
+          </div>
+        </div>
+        
+        <!-- Chat Input Area -->
+        <div class="border-t border-slate-800/70 p-4">
+          <!-- Context Update Button -->
+          <div class="chat-rail-expanded-only mb-3">
+            <button id="updateContextBtn" class="w-full inline-flex items-center justify-center gap-2 rounded-xl border border-slate-800/70 bg-slate-900/60 px-3 py-2 text-xs font-medium text-slate-300 hover:border-emerald-400/70 hover:bg-emerald-500/10 hover:text-emerald-200 transition" type="button">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Update Context</span>
+            </button>
+            <p id="contextStatus" class="mt-2 text-xs text-slate-500 text-center"></p>
+          </div>
+          
+          <!-- Chat Input -->
+          <div class="chat-rail-expanded-only flex gap-2">
+            <textarea 
+              id="chatInput" 
+              class="flex-1 rounded-xl border border-slate-700/70 bg-slate-900/60 px-3 py-2 text-sm text-slate-200 placeholder-slate-500 resize-none"
+              placeholder="Ask about your notes..."
+              rows="3"
+            ></textarea>
+            <button 
+              id="sendChatBtn" 
+              class="self-end inline-flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              type="button"
+              disabled
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5"/>
+              </svg>
+              <span class="sr-only">Send message</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </aside>
   </div>
 
   <script>
@@ -432,6 +577,7 @@
       initViewManager();
       initRail();
       initTimeline();
+      initChatRail();
     });
 
 
@@ -476,6 +622,9 @@ function initViewManager() {
       // Update document title
       document.title = 'OyVai - Primary States Timeline';
       
+      // Emit view change event
+      document.dispatchEvent(new CustomEvent('oyvai-view-changed', { detail: { view: 'notes' } }));
+      
     } else if (view === 'state' && stateCode) {
       currentView = 'state';
       selectedStateCode = stateCode;
@@ -499,6 +648,9 @@ function initViewManager() {
       
       // Load state info
       loadStateInfo(stateCode);
+      
+      // Emit view change event
+      document.dispatchEvent(new CustomEvent('oyvai-view-changed', { detail: { view: 'state', stateCode } }));
     }
   }
   
@@ -1498,6 +1650,227 @@ function initRail() {
       const target =
         column.offsetLeft - scroller.clientWidth / 2 + column.offsetWidth / 2;
       scroller.scrollTo({ left: Math.max(target, 0), behavior: 'smooth' });
+    }
+    
+    // Chat Rail Functions
+    function initChatRail() {
+      const chatRail = document.getElementById('chatRail');
+      const chatRailToggle = document.getElementById('chatRailToggle');
+      const chatInput = document.getElementById('chatInput');
+      const sendChatBtn = document.getElementById('sendChatBtn');
+      const updateContextBtn = document.getElementById('updateContextBtn');
+      const chatMessages = document.getElementById('chatMessages');
+      const chatTitle = document.getElementById('chatTitle');
+      const chatDescription = document.getElementById('chatDescription');
+      const contextStatus = document.getElementById('contextStatus');
+      
+      if (!chatRail) return;
+      
+      let currentChatState = null;
+      let chatHistory = {};
+      
+      // Initialize collapsed state
+      const storageKey = 'oyvai.chatRailCollapsed';
+      const stored = localStorage.getItem(storageKey);
+      const defaultCollapsed = stored === null ? true : stored === 'true';
+      setChatRailCollapsed(defaultCollapsed);
+      
+      // Toggle button handler
+      chatRailToggle?.addEventListener('click', () => {
+        setChatRailCollapsed(!(chatRail.dataset.collapsed === 'true'));
+      });
+      
+      function setChatRailCollapsed(collapsed) {
+        chatRail.dataset.collapsed = collapsed ? 'true' : 'false';
+        localStorage.setItem(storageKey, collapsed ? 'true' : 'false');
+        chatRailToggle.title = collapsed ? 'Expand AI chat panel' : 'Collapse AI chat panel';
+      }
+      
+      // Update chat context based on current view
+      function updateChatContext() {
+        const viewManager = window.appViewManager;
+        if (!viewManager) return;
+        
+        const currentView = viewManager.getCurrentView();
+        const selectedState = viewManager.getSelectedState();
+        
+        if (currentView === 'notes') {
+          currentChatState = 'notes';
+          chatTitle.textContent = 'AI Assistant';
+          chatDescription.textContent = 'General assistant for your daily notes';
+        } else if (currentView === 'state' && selectedState) {
+          currentChatState = selectedState;
+          updateStateSpecificChat(selectedState);
+        }
+        
+        // Load chat history for current state
+        loadChatHistory();
+      }
+      
+      async function updateStateSpecificChat(stateCode) {
+        try {
+          const states = await window.timelineAPI?.getStates?.() || [];
+          const state = states.find(s => s.code === stateCode);
+          
+          if (state) {
+            chatTitle.textContent = `${state.title} Assistant`;
+            chatDescription.textContent = `AI focused on your ${state.title.toLowerCase()} activities`;
+          }
+        } catch (error) {
+          console.error('Failed to update chat context:', error);
+        }
+      }
+      
+      function loadChatHistory() {
+        if (!chatHistory[currentChatState]) {
+          chatHistory[currentChatState] = [];
+        }
+        
+        // Clear and reload messages
+        chatMessages.innerHTML = '';
+        const messages = chatHistory[currentChatState];
+        
+        if (messages.length === 0) {
+          chatMessages.innerHTML = `
+            <div class="text-center py-8">
+              <p class="text-sm text-slate-500">Start a conversation with your AI assistant</p>
+            </div>
+          `;
+        } else {
+          messages.forEach(msg => addMessageToUI(msg.role, msg.content, false));
+        }
+      }
+      
+      function addMessageToUI(role, content, animate = true) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `chat-message chat-message-${role}`;
+        
+        const avatar = document.createElement('div');
+        avatar.className = 'chat-message-avatar';
+        avatar.textContent = role === 'user' ? 'U' : 'AI';
+        
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'chat-message-content';
+        contentDiv.textContent = content;
+        
+        messageDiv.appendChild(avatar);
+        messageDiv.appendChild(contentDiv);
+        
+        // Remove empty state message if present
+        const emptyMsg = chatMessages.querySelector('.text-center');
+        if (emptyMsg) emptyMsg.remove();
+        
+        chatMessages.appendChild(messageDiv);
+        
+        if (animate) {
+          chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+      }
+      
+      // Handle chat input
+      chatInput?.addEventListener('input', () => {
+        sendChatBtn.disabled = !chatInput.value.trim();
+      });
+      
+      chatInput?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          if (!sendChatBtn.disabled) {
+            sendMessage();
+          }
+        }
+      });
+      
+      sendChatBtn?.addEventListener('click', sendMessage);
+      
+      async function sendMessage() {
+        const message = chatInput.value.trim();
+        if (!message) return;
+        
+        // Add user message
+        addMessageToUI('user', message);
+        
+        // Store in history
+        if (!chatHistory[currentChatState]) {
+          chatHistory[currentChatState] = [];
+        }
+        chatHistory[currentChatState].push({ role: 'user', content: message });
+        
+        // Clear input
+        chatInput.value = '';
+        sendChatBtn.disabled = true;
+        
+        // Show typing indicator
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'chat-message chat-message-assistant';
+        typingDiv.id = 'typing-indicator';
+        typingDiv.innerHTML = `
+          <div class="chat-message-avatar">AI</div>
+          <div class="chat-message-content">
+            <span class="inline-flex gap-1">
+              <span class="inline-block w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+              <span class="inline-block w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+              <span class="inline-block w-2 h-2 bg-slate-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            </span>
+          </div>
+        `;
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+        
+        try {
+          // Send to API
+          const response = await window.timelineAPI?.sendChatMessage?.(message, currentChatState);
+          
+          // Remove typing indicator
+          typingDiv.remove();
+          
+          if (response && response.content) {
+            addMessageToUI('assistant', response.content);
+            chatHistory[currentChatState].push({ role: 'assistant', content: response.content });
+          } else {
+            addMessageToUI('assistant', 'Sorry, I encountered an error. Please try again.');
+          }
+        } catch (error) {
+          console.error('Chat error:', error);
+          typingDiv.remove();
+          addMessageToUI('assistant', 'Sorry, I encountered an error. Please make sure your OpenAI API key is configured.');
+        }
+      }
+      
+      // Update context button handler
+      updateContextBtn?.addEventListener('click', async () => {
+        updateContextBtn.disabled = true;
+        contextStatus.textContent = 'Updating context...';
+        contextStatus.classList.remove('text-emerald-400', 'text-rose-400');
+        
+        try {
+          const response = await window.timelineAPI?.updateChatContext?.(currentChatState);
+          
+          if (response && response.success) {
+            contextStatus.textContent = 'Context updated successfully!';
+            contextStatus.classList.add('text-emerald-400');
+          } else {
+            contextStatus.textContent = 'Failed to update context';
+            contextStatus.classList.add('text-rose-400');
+          }
+        } catch (error) {
+          console.error('Context update error:', error);
+          contextStatus.textContent = 'Failed to update context';
+          contextStatus.classList.add('text-rose-400');
+        } finally {
+          updateContextBtn.disabled = false;
+          setTimeout(() => {
+            contextStatus.textContent = '';
+            contextStatus.classList.remove('text-emerald-400', 'text-rose-400');
+          }, 3000);
+        }
+      });
+      
+      // Listen for view changes
+      document.addEventListener('oyvai-view-changed', updateChatContext);
+      
+      // Initial context update
+      updateChatContext();
     }
   </script>
 </body>

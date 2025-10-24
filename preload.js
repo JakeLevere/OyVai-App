@@ -69,6 +69,8 @@ contextBridge.exposeInMainWorld('timelineAPI', {
   addState: (state) => ipcRenderer.invoke('states:add', state),
   updateState: (state) => ipcRenderer.invoke('states:update', state),
   deleteState: (code) => ipcRenderer.invoke('states:delete', { code }),
+  sendChatMessage: (message, state) => ipcRenderer.invoke('chat:send-message', { message, state }),
+  updateChatContext: (state) => ipcRenderer.invoke('chat:update-context', state),
   onNotesPathChanged: (callback) => {
     if (typeof callback !== 'function') {
       return () => {};
