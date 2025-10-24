@@ -276,10 +276,8 @@ function registerIpcHandlers() {
         return { success: false, reason: 'NO_NOTES_PATH' };
       }
       
-      // Create or update context file
-      const contextDir = path.join(app.getPath('userData'), 'contexts');
-      await fs.promises.mkdir(contextDir, { recursive: true });
-      
+      // Resolve preferred directory (D:\OyVai Storage) with fallback
+      const contextDir = await resolveContextDir();
       const contextFile = path.join(contextDir, `${state}-context.md`);
       
       // Extract relevant bullets from notes
@@ -712,22 +710,63 @@ function broadcastNotesUpdated(dateKey) {
 // Chat helper functions
 async function getChatContext(state) {
   try {
-    const contextDir = path.join(app.getPath('userData'), 'contexts');
+    const contextDir = await resolveContextDir();
     const contextFile = path.join(contextDir, `${state}-context.md`);
-    
-    // Check if context file exists
     try {
       await fs.promises.access(contextFile);
       const content = await fs.promises.readFile(contextFile, 'utf8');
       return content;
-    } catch (error) {
-      // Context file doesn't exist
+    } catch (_) {
       return null;
     }
   } catch (error) {
     console.error('Error reading chat context:', error);
     return null;
   }
+}
+
+async function resolveContextDir() {
+  const preferredDir = 'D:\\OyVai Storage';
+  try {
+    await fs.promises.mkdir(preferredDir, { recursive: true });
+    await migrateExistingContexts(preferredDir);
+    return preferredDir;
+  } catch (_) {
+    // Fall back to legacy location under userData
+    const legacy = path.join(app.getPath('userData'), 'contexts');
+    try { await fs.promises.mkdir(legacy, { recursive: true }); } catch (_) {}
+    return legacy;
+  }
+}
+
+async function migrateExistingContexts(targetDir) {
+  const legacy = path.join(app.getPath('userData'), 'contexts');
+  try {
+    if (path.resolve(legacy) === path.resolve(targetDir)) return;
+    const entries = await fs.promises.readdir(legacy, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile()) continue;
+      if (!entry.name.endsWith('-context.md')) continue;
+      const from = path.join(legacy, entry.name);
+      const to = path.join(targetDir, entry.name);
+      try {
+        // Only move if not already present at target
+        await fs.promises.access(to).then(() => false).catch(() => true);
+        const existsAtTarget = await fileExists(to);
+        if (!existsAtTarget) {
+          await fs.promises.copyFile(from, to);
+        }
+        // Remove legacy file after copy (best-effort)
+        try { await fs.promises.unlink(from); } catch (_) {}
+      } catch (_) {}
+    }
+  } catch (_) {
+    // Ignore migration errors silently
+  }
+}
+
+async function fileExists(p) {
+  try { await fs.promises.access(p); return true; } catch (_) { return false; }
 }
 
 function buildChatSystemPrompt(state, context) {
@@ -762,13 +801,92 @@ function buildChatSystemPrompt(state, context) {
   return basePrompt;
 }
 
+async function ensureInitialContexts() {
+  const dir = await resolveContextDir();
+  try { await fs.promises.mkdir(dir, { recursive: true }); } catch (_) {}
+
+  const settings = loadSettings();
+  let notes = {};
+  try {
+    if (settings.notesFilePath) {
+      await ensureNotesFile(settings.notesFilePath);
+      const markdown = await fs.promises.readFile(settings.notesFilePath, 'utf8');
+      notes = parseNotes(markdown).notes || {};
+    }
+  } catch (_) {}
+
+  // Ensure general context file exists
+  const generalFile = path.join(dir, 'notes-context.md');
+  if (!(await fileExists(generalFile))) {
+    const content = buildGeneralContextContent(notes);
+    try { await fs.promises.writeFile(generalFile, content, 'utf8'); } catch (_) {}
+  }
+
+  // Ensure state-specific files exist
+  const states = loadAllStates();
+  for (const s of states) {
+    const code = String(s.code).toLowerCase();
+    const file = path.join(dir, `${code}-context.md`);
+    if (!(await fileExists(file))) {
+      const content = buildStateContextContent(notes, s);
+      try { await fs.promises.writeFile(file, content, 'utf8'); } catch (_) {}
+    }
+  }
+}
+
+function buildGeneralContextContent(notes) {
+  const entries = Object.entries(notes || {}).sort(([a], [b]) => {
+    const aTime = Date.parse(a);
+    const bTime = Date.parse(b);
+    if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return bTime - aTime;
+    return b.localeCompare(a);
+  });
+  let out = '# General Daily Notes Context\n\nThis context includes all daily note entries.\n\n';
+  for (const [dateKey, content] of entries) {
+    if ((content || '').trim()) {
+      out += `## ${dateKey}\n\n${content}\n\n`;
+    }
+  }
+  return out;
+}
+
+function buildStateContextContent(notes, stateInfo) {
+  const entries = Object.entries(notes || {}).sort(([a], [b]) => {
+    const aTime = Date.parse(a);
+    const bTime = Date.parse(b);
+    if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) return bTime - aTime;
+    return b.localeCompare(a);
+  });
+  const title = stateInfo?.title || String(stateInfo?.code || '').toUpperCase();
+  const description = stateInfo?.description || '';
+  const code = String(stateInfo?.code || '').toLowerCase();
+  let out = `# ${title} Context\n\nThis context includes only ${title.toLowerCase()}-related entries.\n`;
+  if (description) out += `Description: ${description}\n\n`; else out += '\n';
+  for (const [dateKey, content] of entries) {
+    const trimmed = (content || '').trim();
+    if (!trimmed) continue;
+    const lines = trimmed.split('\n');
+    const stateBullets = lines.filter((line) => {
+      const m = line.match(/\{([a-z0-9_-]{1,8})\}\s*$/i);
+      return m && String(m[1] || '').toLowerCase() === code;
+    });
+    if (stateBullets.length > 0) {
+      out += `## ${dateKey}\n\n`;
+      out += stateBullets.map((b) => b.replace(/\s*\{[a-z0-9_-]{1,8}\}\s*$/i, '')).join('\n');
+      out += '\n\n';
+    }
+  }
+  return out;
+}
+
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.oyvai.app');
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   registerIpcHandlers();
   createWindow();
+  try { await ensureInitialContexts(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {
